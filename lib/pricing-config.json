@@ -1,0 +1,189 @@
+{
+  "version": "2026-10-28b",
+  "fuente": "Sheet 'Sora · Pricing y funcionalidades' (docs.google.com/spreadsheets/d/1kKyKSufysHTqZxuXGIKselkJuwI-7KAYrk_foPhDuT8)",
+  "moneda": "MXN sin IVA, por empleado activo al mes",
+  "brackets": [
+    {
+      "min": 1,
+      "max": 249,
+      "m1": 42,
+      "m2": 70
+    },
+    {
+      "min": 250,
+      "max": 999,
+      "m1": 30,
+      "m2": 51
+    },
+    {
+      "min": 1000,
+      "max": 1999,
+      "m1": 23,
+      "m2": 38
+    },
+    {
+      "min": 2000,
+      "max": 2999,
+      "m1": 19,
+      "m2": 32
+    },
+    {
+      "min": 3000,
+      "max": 4999,
+      "m1": 18,
+      "m2": 29
+    },
+    {
+      "min": 5000,
+      "max": 7999,
+      "m1": 15,
+      "m2": 26
+    },
+    {
+      "min": 8000,
+      "max": 9999,
+      "m1": 14,
+      "m2": 22
+    },
+    {
+      "min": 10000,
+      "max": 24999,
+      "m1": 11,
+      "m2": 19
+    },
+    {
+      "min": 25000,
+      "max": 1000000000,
+      "m1": 10,
+      "m2": 16
+    }
+  ],
+  "planes": [
+    "estandar",
+    "pro"
+  ],
+  "nombresPlan": {
+    "estandar": "Estándar",
+    "pro": "PRO"
+  },
+  "factorPlan": {
+    "estandar": 0.75,
+    "pro": 1.0
+  },
+  "fracStack": {
+    "ausencias": 0.075,
+    "vacaciones": 0.125,
+    "demandas": 0.025
+  },
+  "fracStackMinimo": 1,
+  "piso": {
+    "hastaEmpleados": 99,
+    "estandar": 499,
+    "pro": 699,
+    "nota": "Cubre 1 solución (Expediente, Recibos o solo Reloj checador). La 2ª solución se cobra encima a su precio normal por empleado. Decisión Diego 16-oct y 28-oct-2026."
+  },
+  "complementos": {
+    "ausencias": {
+      "nombre": "Ausencias",
+      "pctM1": 0.075,
+      "minimo": 1,
+      "planMinimo": null,
+      "incluido": true,
+      "nota": "Incluida sin costo en todos los planes desde 14-oct-2026 (Diego). pctM1 queda como histórico; fracStack no cambia."
+    },
+    "vacaciones": {
+      "nombre": "Vacaciones",
+      "pctM1": 0.125,
+      "minimo": 1,
+      "planMinimo": "estandar"
+    }
+  },
+  "relojChecador": {
+    "nombre": "Reloj checador",
+    "nota": "Solo reloj: Estándar = 'solo', PRO = 'soloPro' (Diego 28-oct-2026). Con Documentos o Recibos ('conModulo'): mismo precio en los planes. Solo reloj con ≤99 empleados usa el piso del plan ($499 Estándar / $699 PRO), igual que un módulo.",
+    "brackets": [
+      {
+        "min": 1,
+        "max": 249,
+        "solo": 28,
+        "conModulo": 17,
+        "soloPro": 33
+      },
+      {
+        "min": 250,
+        "max": 999,
+        "solo": 25,
+        "conModulo": 15,
+        "soloPro": 31
+      },
+      {
+        "min": 1000,
+        "max": 1999,
+        "solo": 23,
+        "conModulo": 14,
+        "soloPro": 27
+      },
+      {
+        "min": 2000,
+        "max": 2999,
+        "solo": 18,
+        "conModulo": 11,
+        "soloPro": 22
+      },
+      {
+        "min": 3000,
+        "max": 4999,
+        "solo": 13,
+        "conModulo": 8,
+        "soloPro": 16
+      },
+      {
+        "min": 5000,
+        "max": 7999,
+        "solo": 10,
+        "conModulo": 7,
+        "soloPro": 13
+      },
+      {
+        "min": 8000,
+        "max": 9999,
+        "solo": 9,
+        "conModulo": 6,
+        "soloPro": 11
+      },
+      {
+        "min": 10000,
+        "max": 24999,
+        "solo": 6,
+        "conModulo": 4,
+        "soloPro": 8
+      },
+      {
+        "min": 25000,
+        "max": 1000000000,
+        "solo": 6,
+        "conModulo": 4,
+        "soloPro": 8
+      }
+    ]
+  },
+  "demandas": {
+    "costo": 0,
+    "planMinimo": null,
+    "requiereDocumentos": true
+  },
+  "recibosSinDocumentos": {
+    "planMinimo": "estandar"
+  },
+  "descuentoAnual": 0.15,
+  "soraGoHasta": 99,
+  "descontinuados": [
+    "lite",
+    "recibos_lite",
+    "docs_lite",
+    "ligero"
+  ],
+  "planesDescontinuados": {
+    "basico": "Básico ya no existe (Diego 28-oct-2026). Solo Estándar y PRO."
+  }
+}

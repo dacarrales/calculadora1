@@ -1,0 +1,29 @@
+/* Páginas de éxito y cancelación — misma identidad que calculadora1 */
+:root{--bg:#F3F4F6;--card:#fff;--ink:#111827;--ink2:#374151;--muted:#6B7280;--line:#E5E7EB;--navy:#111827;--accent:#2563EB;--accent-h:#1D4ED8;--accent-soft:#EFF6FF;--green:#10B981;--green-t:#047857;--green-soft:#ECFDF5;--amber-t:#B45309;--amber-soft:#FFFBEB;--font:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;font-size:15px;line-height:1.5}
+.wrap{max-width:620px;margin:0 auto;padding:16px 16px 48px}
+.logo{font-weight:700;font-size:22px;letter-spacing:-.6px;padding:4px 0 18px}.logo span{color:var(--accent)}
+.hero{background:var(--navy);color:#fff;border-radius:20px;padding:28px 26px;position:relative;overflow:hidden}
+.hero::after{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(500px 220px at 100% 0%,rgba(37,99,235,.4),transparent 70%)}
+.hero>*{position:relative;z-index:1}
+.ico{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-bottom:14px}
+.ico.ok{background:var(--green)}.ico.no{background:#374151}
+.ico svg{width:22px;height:22px;color:#fff}
+h1{font-size:26px;font-weight:700;letter-spacing:-.02em;line-height:1.2;text-wrap:balance}
+.hero p{color:#9CA3AF;margin-top:8px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px 20px;margin-top:16px;box-shadow:0 1px 2px rgba(17,24,39,.05),0 4px 14px rgba(17,24,39,.05)}
+.lab{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:8px}
+.row{display:flex;justify-content:space-between;gap:12px;padding:6px 0;font-size:14px;color:var(--ink2);border-bottom:1px solid #F3F4F6}
+.row b{color:var(--ink);font-weight:600;font-variant-numeric:tabular-nums;text-align:right}
+.row.tot{border-bottom:none;border-top:1px solid var(--line);margin-top:4px;padding-top:10px;font-weight:700;color:var(--ink);font-size:15px}
+.note{font-size:13px;color:var(--muted);margin-top:10px}
+.acts{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:none;background:var(--accent);color:#fff;font-weight:600;font-size:15px;padding:12px 20px;border-radius:12px;text-decoration:none;cursor:pointer}
+.btn:hover{background:var(--accent-h)}
+.btn.sec{background:#fff;color:var(--accent);border:1.5px solid var(--accent)}
+.btn.sec:hover{background:var(--accent-soft)}
+.badge{display:inline-block;font-size:11.5px;font-weight:600;color:var(--amber-t);background:var(--amber-soft);border-radius:100px;padding:3px 10px;margin-top:12px}
+.skel{height:14px;border-radius:6px;background:linear-gradient(90deg,#F3F4F6,#E5E7EB,#F3F4F6);background-size:200% 100%;animation:sk 1.2s infinite;margin:10px 0}
+@keyframes sk{to{background-position:-200% 0}}
+@media (max-width:560px){h1{font-size:22px}.hero{padding:24px 20px}.btn{width:100%}}

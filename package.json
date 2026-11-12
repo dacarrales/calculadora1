@@ -1,0 +1,20 @@
+{
+  "name": "sora-go-calculadora1",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Sora Go · calculadora1: contratación y pago con Stripe Checkout (modo de prueba)",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "dev": "node scripts/dev-server.js",
+    "setup:stripe": "node scripts/setup-stripe.js",
+    "test": "node scripts/test.js"
+  },
+  "dependencies": {
+    "stripe": "^17.0.0"
+  },
+  "devDependencies": {
+    "jsdom": "^24.1.3"
+  }
+}

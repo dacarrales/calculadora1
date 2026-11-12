@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<title>Sora Go · Contratación confirmada</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/estilo-pago.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="logo">sora<span>.</span></div>
+  <section class="hero">
+    <div class="ico ok" id="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg></div>
+    <h1 id="titulo">Confirmando tu pago…</h1>
+    <p id="sub">Un momento, estamos revisando tu contratación con Stripe.</p>
+    <span class="badge" id="badge" hidden>Modo de prueba · no se cobró dinero real</span>
+  </section>
+  <section class="card" id="detalle"><div class="lab">Tu contratación</div><div class="skel"></div><div class="skel"></div><div class="skel" style="width:60%"></div></section>
+  <section class="card" id="pasos" hidden>
+    <div class="lab">Siguiente paso</div>
+    <p style="color:var(--ink2);font-size:14px">Crea tu cuenta de Sora con el mismo correo con el que pagaste. Si tienes cualquier duda, escríbele a Vera por WhatsApp.</p>
+    <div class="acts">
+      <a class="btn" href="https://app.sora.mx/account/crear" target="_blank" rel="noopener">Crear mi cuenta</a>
+      <a class="btn sec" id="wa" href="https://wa.me/528120466247" target="_blank" rel="noopener">Hablar con Vera</a>
+    </div>
+  </section>
+</div>
+<script>
+(async function () {
+  const $ = id => document.getElementById(id);
+  const esc = v => String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const money = c => '$' + (c / 100).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' MXN';
+  const NOM = { documentos: 'Expedientes digitales', recibos: 'Recibos de nómina', reloj: 'Reloj checador', vacaciones: 'Vacaciones y ausencias' };
+  const fail = (t, s) => { $('ico').className = 'ico no'; $('titulo').textContent = t; $('sub').textContent = s; $('detalle').hidden = true; };
+
+  const id = new URLSearchParams(location.search).get('session_id');
+  if (!id) return fail('No encontramos tu pago', 'Abre este enlace desde la página de pago de Stripe.');
+  let d;
+  try {
+    const r = await fetch('/api/session?id=' + encodeURIComponent(id));
+    d = await r.json();
+    if (!r.ok) throw new Error(d.error);
+  } catch (e) { return fail('No pudimos confirmar tu pago', 'Si ya pagaste, revisa el recibo que Stripe te envió por correo o escríbenos a Vera.'); }
+
+  if (d.modo === 'test') $('badge').hidden = false;
+  if (!(d.estado === 'complete' && d.pagado)) {
+    return fail('Tu pago aún no se confirma', 'Si lo acabas de hacer, espera unos segundos y recarga esta página.');
+  }
+  try { sessionStorage.removeItem('sora_calc1_estado'); } catch (e) {}
+  try { (window.dataLayer = window.dataLayer || []).push({ event: 'sora_diagnostico', evento: 'compra_confirmada', value: d.totalCentavos / 100, currency: 'MXN', plan: d.plan, facturacion: d.facturacion }); } catch (e) {}
+
+  $('titulo').textContent = '¡Listo! Contrataste Sora Go.';
+  $('sub').textContent = d.email ? `Stripe te envió el recibo a ${d.email}.` : 'Stripe te envió el recibo por correo.';
+  const prox = d.proximoCobro ? new Date(d.proximoCobro).toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' }) : null;
+  $('detalle').innerHTML = `<div class="lab">Tu contratación</div>
+    ${d.empresa ? `<div class="row"><span>Empresa</span><b>${esc(d.empresa)}</b></div>` : ''}
+    <div class="row"><span>Plan</span><b>Sora Go ${esc(d.plan)}</b></div>
+    <div class="row"><span>Colaboradores</span><b>${esc(d.empleados)}</b></div>
+    <div class="row"><span>Facturación</span><b>${d.facturacion === 'anual' ? 'Pago anual' : 'Suscripción mensual'}</b></div>
+    ${(d.lineas && d.lineas.length ? d.lineas : d.soluciones.map(k => ({ nombre: NOM[k] || k, importeCentavos: null })))
+      .map(l => `<div class="row"><span>${esc(String(l.nombre).replace(/ · Sora Go (Estándar|PRO)$/, ''))}</span><b>${l.importeCentavos ? money(l.importeCentavos) : 'Incluido'}</b></div>`).join('')}
+    <div class="row"><span>Subtotal</span><b>${money(d.subtotalCentavos)}</b></div>
+    <div class="row"><span>IVA</span><b>${money(d.ivaCentavos || 0)}</b></div>
+    <div class="row tot"><span>Total pagado</span><b>${money(d.totalCentavos)}</b></div>
+    ${prox ? `<p class="note">Tu próximo cobro será el ${prox}.</p>` : ''}`;
+  $('wa').href = 'https://wa.me/528120466247?text=' + encodeURIComponent(`Hola Vera, acabo de contratar Sora Go ${d.plan}${d.empresa ? ' para ' + d.empresa : ''}. Mi correo es ${d.email || ''}.`);
+  $('pasos').hidden = false;
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,2019 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sora Go · Contratar y pagar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* Identidad Sora (plataforma): fondo gris claro, tarjetas blancas, azul marino para secciones de impacto.
+     Color con significado: azul = acción principal, verde = completado, morado = pendiente, amarillo = advertencia. */
+  :root{
+    --bg:#F3F4F6; --card:#FFFFFF; --ink:#111827; --ink2:#374151; --muted:#6B7280; --line:#E5E7EB; --soft:#F9FAFB;
+    --navy:#111827; --navy2:#1F2937; --navy-line:rgba(255,255,255,.10); --on-navy:#FFFFFF; --on-navy2:#9CA3AF;
+    --accent:#2563EB; --accent-h:#1D4ED8; --accent-soft:#EFF6FF; --accent-line:#BFDBFE;
+    --green:#10B981; --green-t:#047857; --green-soft:#ECFDF5;
+    --amber:#F59E0B; --amber-t:#B45309; --amber-soft:#FFFBEB;
+    --purple:#8B5CF6; --purple-t:#6D28D9; --purple-soft:#F5F3FF;
+    --r:14px; --shadow:0 1px 2px rgba(17,24,39,.05),0 4px 14px rgba(17,24,39,.05);
+    --font:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-text-size-adjust:100%}
+  body{font-family:var(--font);background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;font-size:15px;line-height:1.5;font-weight:400}
+  button{font-family:inherit}
+  a{color:var(--accent)}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .wrap{max-width:1120px;margin:0 auto;padding:16px 20px 48px}
+  .top{display:flex;align-items:center;gap:10px;padding:4px 0 14px}
+  .logo{font-weight:700;font-size:22px;letter-spacing:-.6px;color:var(--ink)}
+  .logo span{color:var(--accent)}
+  .top-l{font-size:12.5px;font-weight:500;color:var(--muted);padding-left:10px;border-left:1px solid var(--line)}
+
+  /* tipografía */
+  .eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:11.5px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
+  .eyebrow::before{content:'';width:18px;height:2px;border-radius:2px;background:currentColor}
+  .dark .eyebrow{color:#93C5FD}
+  h1{font-weight:700;letter-spacing:-.02em;line-height:1.15;text-wrap:balance}
+  h2{font-weight:600;text-wrap:balance}
+  .sub{color:var(--muted);font-size:15.5px;margin-top:8px;max-width:620px}
+
+  /* transiciones entre pantallas */
+  .screen{animation:in .28s cubic-bezier(.2,.7,.2,1)}
+  @keyframes in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+  /* bloques oscuros estratégicos */
+  .dark{background:var(--navy);color:var(--on-navy);border-radius:20px;position:relative;overflow:hidden}
+  .dark::after{content:'';position:absolute;inset:0;pointer-events:none;background:
+    radial-gradient(600px 240px at 100% 0%,rgba(37,99,235,.35),transparent 70%),
+    radial-gradient(400px 200px at 0% 100%,rgba(37,99,235,.12),transparent 70%)}
+  .dark > *{position:relative;z-index:1}
+  .dark .sub{color:var(--on-navy2)}
+
+  /* progreso */
+  .prog{display:flex;align-items:center;gap:12px;max-width:720px;margin:0 auto}
+  .prog .bar-p{flex:1;height:4px;background:var(--line);border-radius:3px;overflow:hidden}
+  .prog .bar-p i{display:block;height:100%;background:var(--accent);border-radius:3px;transition:width .35s cubic-bezier(.2,.7,.2,1)}
+  .prog span{font-size:12px;font-weight:500;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
+  .prog.wide{max-width:980px}.prog.full{max-width:none}
+  .back{border:none;background:none;color:var(--muted);font-size:13px;font-weight:500;cursor:pointer;padding:6px 0}
+  .back:hover{color:var(--ink)}
+
+  /* inicio: encabezado oscuro conectado con las tarjetas de necesidades */
+  .start{max-width:820px;margin:0 auto}
+  .start-h{padding:34px 36px 74px}
+  .start-h h1{font-size:38px;margin-top:12px;max-width:640px}
+  .start-h .sub{font-size:16.5px;margin-top:12px}
+  .start-h .diag-chip{margin-top:18px}
+  .diag-chip{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:500;color:var(--on-navy2);border:1px solid var(--navy-line);padding:5px 12px;border-radius:100px}
+  .diag-chip i{width:6px;height:6px;border-radius:50%;background:var(--green)}
+  .start-b{background:var(--card);border-radius:18px;box-shadow:0 10px 40px rgba(17,24,39,.12);margin:-48px 16px 0;padding:22px;position:relative;z-index:2}
+  .needs-sub{font-size:18px;font-weight:600}
+  .needs{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+  .need{display:flex;align-items:center;gap:14px;text-align:left;border:1.5px solid var(--line);border-radius:14px;background:var(--card);padding:14px 16px;cursor:pointer;transition:border-color .15s,background .15s,transform .15s;color:var(--ink)}
+  .need:hover{border-color:var(--accent-line);transform:translateY(-1px)}
+  .need.on{border-color:var(--accent);background:var(--accent-soft)}
+  .need-ico{width:40px;height:40px;border-radius:11px;background:var(--bg);color:var(--ink2);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .15s,color .15s}
+  .need.on .need-ico{background:var(--accent);color:#fff}
+  .need-ico svg{width:21px;height:21px}
+  .need-b{flex:1;min-width:0}
+  .need-n{display:block;font-weight:600;font-size:15px}
+  .need-d{display:block;font-size:12.5px;color:var(--muted);margin-top:2px;line-height:1.35}
+  .need-chk{width:22px;height:22px;border-radius:50%;border:1.5px solid #D1D5DB;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;transition:background .15s,border-color .15s}
+  .need.on .need-chk{background:var(--accent);border-color:var(--accent)}
+  .need.need-explore{margin-top:10px;width:100%;border-style:dashed}
+  .need.need-explore.on{border-style:solid}
+
+  /* preguntas: limpio, gris claro, tarjetas blancas, seleccionado en azul */
+  .q{max-width:720px;margin:22px auto 0}
+  .q h1{font-size:28px;margin-top:10px}
+  .ops{display:grid;gap:10px;margin-top:22px}
+  .op{display:flex;align-items:center;gap:14px;text-align:left;border:1.5px solid var(--line);border-radius:14px;background:var(--card);padding:15px 18px;cursor:pointer;font-size:15px;font-weight:500;color:var(--ink);transition:border-color .15s,background .15s,transform .15s;box-shadow:var(--shadow)}
+  .op:hover{border-color:var(--accent-line);transform:translateY(-1px)}
+  .op.on{border-color:var(--accent);background:var(--accent-soft)}
+  .op .rd{width:18px;height:18px;border-radius:50%;border:1.5px solid #D1D5DB;flex-shrink:0;transition:border .15s}
+  .op.on .rd{border:6px solid var(--accent)}
+  .op small{display:block;font-weight:400;color:var(--muted);font-size:13px;margin-top:2px}
+  .subq{margin-top:22px;padding:18px;border-radius:14px;background:var(--accent-soft);animation:in .25s}
+  .subq h2{font-size:16px;margin-bottom:12px}
+  .subq .ops{margin-top:0;grid-template-columns:repeat(3,1fr)}
+  .subq .op{padding:12px 14px;font-size:14px;justify-content:center;text-align:center}
+  .subq .op .rd{display:none}
+  .subq .ops.ico .op{flex-direction:column;gap:8px;padding:14px 10px}
+  .op-ico{width:36px;height:36px;border-radius:10px;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center}
+  .op-ico svg{width:20px;height:20px}
+  .omit{display:block;margin:12px auto 0;border:none;background:none;color:var(--muted);font-size:12.5px;font-weight:500;cursor:pointer;text-decoration:underline}
+  .txt-row{display:flex;gap:8px;flex-wrap:wrap}
+  .txt-row input{flex:1;min-width:200px;font:inherit;font-size:15px;padding:11px 14px;border:1.5px solid var(--line);border-radius:12px;background:#fff;outline:none}
+  .txt-row input:focus{border-color:var(--accent)}
+  .chip-b{border:1.5px solid var(--line);background:#fff;padding:10px 14px;border-radius:12px;font-weight:600;font-size:13px;cursor:pointer;color:var(--ink2)}
+  .chip-b.on{border-color:var(--accent);background:var(--accent);color:#fff}
+  .subq .next{margin-top:12px}
+  .next{margin-top:22px;display:flex;justify-content:flex-end}
+
+  /* botones */
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:none;background:var(--accent);color:#fff;font-weight:600;font-size:15px;padding:13px 22px;border-radius:12px;cursor:pointer;text-decoration:none;transition:background .15s,transform .15s}
+  .btn:hover{background:var(--accent-h)}
+  .btn:active{transform:translateY(1px)}
+  .btn:disabled{opacity:.45;cursor:not-allowed}
+  .btn.big{width:100%;padding:15px;font-size:15.5px}
+  .btn.light{background:#fff;color:var(--navy)}
+  .btn.light:hover{background:#E5E7EB}
+
+  /* empleados */
+  .emp-in{display:flex;align-items:center;gap:14px;margin-top:22px;flex-wrap:wrap}
+  .emp-in input{font:inherit;font-size:34px;font-weight:700;width:180px;text-align:center;border:1.5px solid var(--line);border-radius:12px;padding:8px 12px;background:#fff;color:var(--ink);outline:none;-moz-appearance:textfield;font-variant-numeric:tabular-nums;box-shadow:var(--shadow)}
+  .emp-in input::-webkit-outer-spin-button,.emp-in input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+  .emp-in input:focus{border-color:var(--accent)}
+  .emp-in label{color:var(--muted);font-size:12px;font-weight:500;text-transform:uppercase;letter-spacing:.1em}
+  .emp-hint{color:var(--amber-t);font-size:13px;margin-top:12px;min-height:18px}
+
+  /* resultado */
+  .res{max-width:980px;margin:12px auto 0}
+  .res-h{padding:30px 32px 30px}
+  .res-h h1{font-size:32px;margin-top:10px;max-width:640px}
+  .res-h .sub{font-size:16px}
+  .res-procs{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+  .res-procs span{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:500;color:#E5E7EB;background:rgba(255,255,255,.06);border:1px solid var(--navy-line);padding:6px 11px;border-radius:100px}
+  .res-procs svg{width:14px;height:14px;color:#93C5FD}
+  .vcards{display:grid;gap:16px;margin-top:18px}
+  .vc{background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:22px;display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);gap:26px;align-items:center;transition:border-color .2s,box-shadow .2s}
+  .vc.on{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft),var(--shadow)}
+  .vc-main{min-width:0}
+  .vc-top{display:flex;align-items:flex-start;gap:12px}
+  .vc-ico{width:40px;height:40px;border-radius:11px;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .vc-ico svg{width:21px;height:21px}
+  .vc-head{flex:1;min-width:0}
+  .vc-name{font-weight:700;font-size:17px;line-height:1.25;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .vc-msg{font-size:14px;color:var(--ink2);margin-top:4px;line-height:1.45}
+  .vc-badge{font-size:11px;font-weight:600;padding:3px 9px;border-radius:100px;background:var(--accent-soft);color:var(--accent);white-space:nowrap}
+  .vc-badge.opt{background:var(--bg);color:var(--muted)}
+  .vc-add{border:1.5px solid var(--accent);background:#fff;color:var(--accent);font-weight:600;font-size:13px;padding:8px 14px;border-radius:10px;cursor:pointer;white-space:nowrap;flex-shrink:0;transition:background .15s,color .15s}
+  .vc-add:hover{background:var(--accent-soft)}
+  .vc-add.on{background:var(--accent);color:#fff}
+  .cmp{display:grid;grid-template-columns:1fr;gap:8px;margin-top:16px}
+  .cmp-col{border-radius:12px;padding:12px 14px}
+  .cmp-col.hoy{background:var(--soft);border:1px dashed #D1D5DB}
+  .cmp-col.sora{background:var(--accent-soft)}
+  .cmp-h{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}
+  .cmp-col.hoy .cmp-h{color:var(--muted)}
+  .cmp-col.sora .cmp-h{color:var(--accent)}
+  .cmp-col.hoy p{font-size:13.5px;color:var(--ink2);line-height:1.45}
+  .cmp-col.sora ul{list-style:none;display:grid;gap:5px}
+  .cmp-col.sora li{font-size:13.5px;color:var(--ink);padding-left:20px;position:relative;line-height:1.4}
+  .cmp-col.sora li::before{content:'';position:absolute;left:2px;top:5px;width:10px;height:6px;border-left:2px solid var(--accent);border-bottom:2px solid var(--accent);transform:rotate(-45deg)}
+  .cmp-arrow{display:none}
+  .benef{list-style:none;margin-top:14px;display:flex;flex-wrap:wrap;gap:6px}
+  .benef li{font-size:12.5px;font-weight:500;color:var(--green-t);background:var(--green-soft);padding:4px 10px;border-radius:100px}
+  .vc-pain{font-size:13.5px;color:var(--ink2);margin-top:14px;padding:10px 14px;border-left:3px solid var(--accent);background:var(--accent-soft);border-radius:0 10px 10px 0;line-height:1.5}
+  .vc.cumpl{background:linear-gradient(180deg,#F8FAFF,#fff)}
+  .otras-h{font-size:15px;font-weight:600;color:var(--ink);margin:30px 0 12px}
+  .otras{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .vc-mini{display:flex;align-items:center;gap:12px;border:1px solid var(--line);border-radius:14px;background:var(--card);padding:12px 14px;box-shadow:var(--shadow)}
+  .vc-mini-ico{width:34px;height:34px;border-radius:9px;background:var(--bg);color:var(--ink2);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .vc-mini-ico svg{width:18px;height:18px}
+  .vc-mini-b{flex:1;min-width:0}
+  .vc-mini-n{font-weight:600;font-size:14px}
+  .vc-mini-d{font-size:12.5px;color:var(--muted);margin-top:1px}
+  .vc-mini-add{border:1.5px solid var(--line);background:#fff;color:var(--accent);font-weight:600;font-size:13px;padding:7px 12px;border-radius:10px;cursor:pointer;white-space:nowrap;flex-shrink:0}
+  .vc-mini-add:hover{border-color:var(--accent)}
+  .vc-mini-add.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .okbox{margin-top:18px;padding:18px 20px;border-radius:var(--r);background:var(--card);border:1px solid var(--line);color:var(--ink2);font-size:14.5px}
+  .okbox b{display:block;color:var(--ink);margin-bottom:4px}
+
+  /* Tu Sora ideal: bloque oscuro con la configuración del usuario */
+  .ideal{margin-top:28px;padding:26px 28px}
+  .ideal-g{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:22px;align-items:end}
+  .ideal h2{font-size:24px;font-weight:700;margin-top:8px;letter-spacing:-.01em}
+  .ideal-list{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+  .ideal-list span{display:inline-flex;align-items:center;gap:8px;font-size:13.5px;font-weight:500;color:#fff;background:rgba(255,255,255,.07);border:1px solid var(--navy-line);padding:8px 12px;border-radius:12px}
+  .ideal-list span i{width:18px;height:18px;border-radius:50%;background:var(--green);display:inline-flex;align-items:center;justify-content:center}
+  .ideal-list span i::after{content:'';width:7px;height:4px;border-left:2px solid #fff;border-bottom:2px solid #fff;transform:translateY(-1px) rotate(-45deg)}
+  .ideal-list span.vacio{color:var(--on-navy2);border-style:dashed}
+  .btn.light:disabled{background:#374151;color:#9CA3AF}
+  .ideal-meta{font-size:13.5px;color:var(--on-navy2);margin-top:14px}
+  .ideal-meta b{color:#fff;font-weight:600;font-variant-numeric:tabular-nums}
+  .ideal-cta{display:flex;flex-direction:column;align-items:stretch;gap:8px;min-width:250px}
+  .ideal-cta .btn{padding:14px 20px}
+  .ideal-cta small{font-size:12px;color:var(--on-navy2);text-align:center}
+
+  /* mini-interfaces animadas (apariencia de la plataforma) */
+  .ui{background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:0 12px 32px rgba(17,24,39,.10);overflow:hidden;font-size:12.5px;color:var(--ink)}
+  .ui-h{display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid var(--line);background:var(--soft)}
+  .ui-logo{width:20px;height:20px;border-radius:6px;background:var(--navy);color:#fff;font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:center}
+  .ui-t{font-weight:600}
+  .ui-tag{margin-left:auto;font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .ui-b{padding:12px;display:grid;grid-template-columns:minmax(0,1fr);gap:8px}
+  .ui-card{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:10px;padding:10px}
+  .ui-card b{display:block;font-weight:600;font-size:12.5px}
+  .ui-card small{display:block;font-size:11px;color:var(--muted)}
+  .ui-card .grow{flex:1;min-width:0}
+  .ui-di{width:30px;height:36px;border-radius:5px;background:var(--accent-soft);border:1px solid var(--accent-line);position:relative;flex-shrink:0}
+  .ui-di::before,.ui-di::after{content:'';position:absolute;left:6px;right:6px;height:2px;border-radius:2px;background:#93C5FD}
+  .ui-di::before{top:10px}.ui-di::after{top:16px;right:10px}
+  .ui-row{display:flex;align-items:center;gap:8px;padding:6px 2px;border-bottom:1px solid #F3F4F6}
+  .ui-row:last-child{border-bottom:none}
+  .ui-row .nm{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .ui-av{width:22px;height:22px;border-radius:50%;background:var(--bg);color:var(--muted);font-size:10px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .ck{display:inline-grid;flex-shrink:0}.ck > *{grid-area:1/1}
+  .ring{width:16px;height:16px;border-radius:50%;border:1.5px dashed #C4B5FD;background:var(--purple-soft)}
+  .tick{width:16px;height:16px;border-radius:50%;background:var(--green);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+  .tick::after{content:'';width:6px;height:3px;border-left:2px solid #fff;border-bottom:2px solid #fff;transform:translateY(-1px) rotate(-45deg)}
+  .st{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:3px 8px;border-radius:100px;white-space:nowrap}
+  .st::before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor}
+  .st.p{background:var(--purple-soft);color:var(--purple-t)}
+  .st.a{background:var(--accent-soft);color:var(--accent)}
+  .st.g{background:var(--green-soft);color:var(--green-t)}
+  .st.w{background:var(--amber-soft);color:var(--amber-t)}
+  .ui-prog{display:grid;gap:5px}
+  .ui-prog .pl{display:flex;justify-content:space-between;font-size:11px;color:var(--muted)}
+  .ui-prog .pl b{color:var(--ink);font-weight:600;font-variant-numeric:tabular-nums}
+  .ui-bar{height:6px;border-radius:4px;background:var(--bg);overflow:hidden}
+  .ui-bar i{display:block;height:100%;border-radius:4px;background:var(--accent);width:var(--to)}
+  .ui-bar.g i{background:var(--green)}
+  .ui-bar i.fill{animation:fill 8s ease-in-out infinite}
+  .ui-face{width:46px;height:46px;border-radius:12px;background:var(--navy);position:relative;overflow:hidden;flex-shrink:0}
+  .ui-face::before{content:'';position:absolute;left:13px;top:9px;width:20px;height:20px;border-radius:50%;border:2px solid #93C5FD}
+  .ui-face::after{content:'';position:absolute;left:8px;top:31px;width:30px;height:16px;border-radius:15px 15px 0 0;border:2px solid #93C5FD;border-bottom:none}
+  .ui-face .scan{position:absolute;left:4px;right:4px;height:2px;background:#60A5FA;box-shadow:0 0 8px #60A5FA;top:8px;animation:scan 1.6s ease-in-out infinite alternate}
+  .ui-big{font-size:18px;font-weight:700;letter-spacing:-.01em;font-variant-numeric:tabular-nums}
+  .ui-note{font-size:11px;color:var(--muted)}
+  /* cambios de estado: varios estados apilados en la misma celda; uno visible a la vez */
+  .sw{display:inline-grid;justify-items:end}
+  .sw > *{grid-area:1/1}
+  .sw3 > :nth-child(1){animation:swA 8s infinite}
+  .sw3 > :nth-child(2){animation:swB 8s infinite;opacity:0}
+  .sw3 > :nth-child(3){animation:swC 8s infinite;opacity:0}
+  .sw2 > :nth-child(1){animation:sw2A 8s infinite}
+  .sw2 > :nth-child(2){animation:sw2B 8s infinite;opacity:0}
+  .ap1{animation:ap1 8s infinite}.ap2{animation:ap2 8s infinite}.ap3{animation:ap3 8s infinite}
+  @keyframes swA{0%,28%{opacity:1}33%,93%{opacity:0}98%,100%{opacity:1}}
+  @keyframes swB{0%,28%{opacity:0}33%,56%{opacity:1}61%,100%{opacity:0}}
+  @keyframes swC{0%,56%{opacity:0}61%,93%{opacity:1}98%,100%{opacity:0}}
+  @keyframes sw2A{0%,44%{opacity:1}49%,93%{opacity:0}98%,100%{opacity:1}}
+  @keyframes sw2B{0%,44%{opacity:0}49%,93%{opacity:1}98%,100%{opacity:0}}
+  @keyframes ap1{0%,30%{opacity:0;transform:translateY(4px)}35%,93%{opacity:1;transform:none}98%,100%{opacity:0}}
+  @keyframes ap2{0%,46%{opacity:0;transform:translateY(4px)}51%,93%{opacity:1;transform:none}98%,100%{opacity:0}}
+  @keyframes ap3{0%,62%{opacity:0;transform:translateY(4px)}67%,93%{opacity:1;transform:none}98%,100%{opacity:0}}
+  @keyframes fill{0%,22%{width:var(--from)}62%,93%{width:var(--to)}100%{width:var(--from)}}
+  @keyframes scan{from{top:8px}to{top:36px}}
+  /* Expedientes: recorrido en dos pasos (10 s) */
+  .st.n{background:var(--bg);color:var(--muted)}
+  .fsteps{display:flex;flex-wrap:wrap;gap:4px}
+  .fs{font-size:10.5px;font-weight:600;padding:3px 7px;border-radius:100px;background:var(--bg);color:var(--muted)}
+  .fs1{animation:fs1 10s infinite}.fs2{animation:fs2 10s infinite}.fs3{animation:fs3 10s infinite}.fs4{animation:fs4 10s infinite}.fs5{animation:fs5 10s infinite}.fs6{animation:fs6 10s infinite}
+  @keyframes fs1{0%,10%{background:var(--accent);color:#fff}12%,100%{background:var(--bg);color:var(--muted)}}
+  @keyframes fs2{0%,10%,24%,100%{background:var(--bg);color:var(--muted)}12%,22%{background:var(--accent);color:#fff}}
+  @keyframes fs3{0%,22%,48%,100%{background:var(--bg);color:var(--muted)}24%,46%{background:var(--accent);color:#fff}}
+  @keyframes fs4{0%,47%,79%,100%{background:var(--bg);color:var(--muted)}50%,77%{background:var(--accent);color:#fff}}
+  @keyframes fs5{0%,77%,89%,100%{background:var(--bg);color:var(--muted)}79%,87%{background:var(--accent);color:#fff}}
+  @keyframes fs6{0%,87%,99%{background:var(--bg);color:var(--muted)}89%,97%{background:var(--green);color:#fff}}
+  .stack{display:grid}.stack > .pane{grid-area:1/1}
+  .pA{animation:pA 10s infinite}.pB{animation:pB 10s infinite;opacity:0}
+  @keyframes pA{0%,46%{opacity:1}49%,97%{opacity:0}100%{opacity:1}}
+  @keyframes pB{0%,46%{opacity:0}49%,97%{opacity:1}100%{opacity:0}}
+  .ui-up{width:30px;height:36px;border-radius:5px;background:var(--purple-soft);color:var(--purple-t);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .ui-up svg{width:16px;height:16px}
+  .ui-bar.up{margin-top:5px;height:4px}.ui-bar.up i{width:0;animation:upl 10s infinite}
+  @keyframes upl{0%,61%{width:0}76%,97%{width:100%}100%{width:0}}
+  .exfill{width:67%;animation:exf 10s infinite}
+  @keyframes exf{0%,34%{width:67%}37%,76%{width:83%}79%,97%{width:100%}100%{width:67%}}
+  .ex3 > :nth-child(1){animation:x3a 10s infinite}.ex3 > :nth-child(2){animation:x3b 10s infinite;opacity:0}.ex3 > :nth-child(3){animation:x3c 10s infinite;opacity:0}
+  @keyframes x3a{0%,19%{opacity:1}22%,97%{opacity:0}100%{opacity:1}}
+  @keyframes x3b{0%,19%{opacity:0}22%,33%{opacity:1}36%,100%{opacity:0}}
+  @keyframes x3c{0%,33%{opacity:0}36%,97%{opacity:1}100%{opacity:0}}
+  .ey3 > :nth-child(1){animation:y3a 10s infinite}.ey3 > :nth-child(2){animation:y3b 10s infinite;opacity:0}.ey3 > :nth-child(3){animation:y3c 10s infinite;opacity:0}
+  @keyframes y3a{0%,60%{opacity:1}62%,97%{opacity:0}100%{opacity:1}}
+  @keyframes y3b{0%,60%{opacity:0}62%,76%{opacity:1}78%,100%{opacity:0}}
+  @keyframes y3c{0%,76%{opacity:0}78%,97%{opacity:1}100%{opacity:0}}
+  .ez3 > :nth-child(1){animation:z3a 10s infinite}.ez3 > :nth-child(2){animation:z3b 10s infinite;opacity:0}.ez3 > :nth-child(3){animation:z3c 10s infinite;opacity:0}
+  @keyframes z3a{0%,34%{opacity:1}37%,97%{opacity:0}100%{opacity:1}}
+  @keyframes z3b{0%,34%{opacity:0}37%,76%{opacity:1}79%,100%{opacity:0}}
+  @keyframes z3c{0%,76%{opacity:0}79%,97%{opacity:1}100%{opacity:0}}
+  .exaud{animation:exa 10s infinite;opacity:0}
+  @keyframes exa{0%,87%{opacity:0;transform:scale(.6)}90%,97%{opacity:1;transform:none}100%{opacity:0}}
+  /* Vacaciones: solicitud → aprobación → documento de disfrute → firma (10 s) */
+  .va3 > :nth-child(1){animation:a3a 10s infinite}.va3 > :nth-child(2){animation:a3b 10s infinite;opacity:0}.va3 > :nth-child(3){animation:a3c 10s infinite;opacity:0}
+  @keyframes a3a{0%,18%{opacity:1}21%,97%{opacity:0}100%{opacity:1}}
+  @keyframes a3b{0%,18%{opacity:0}21%,34%{opacity:1}37%,100%{opacity:0}}
+  @keyframes a3c{0%,34%{opacity:0}37%,97%{opacity:1}100%{opacity:0}}
+  .vb3 > :nth-child(1){animation:b3a 10s infinite}.vb3 > :nth-child(2){animation:b3b 10s infinite;opacity:0}.vb3 > :nth-child(3){animation:b3c 10s infinite;opacity:0}
+  @keyframes b3a{0%,36%{opacity:1}39%,97%{opacity:0}100%{opacity:1}}
+  @keyframes b3b{0%,36%{opacity:0}39%,62%{opacity:1}65%,100%{opacity:0}}
+  @keyframes b3c{0%,62%{opacity:0}65%,97%{opacity:1}100%{opacity:0}}
+  .vs2 > :nth-child(1){animation:s2a 10s infinite}.vs2 > :nth-child(2){animation:s2b 10s infinite;opacity:0}
+  @keyframes s2a{0%,62%{opacity:1}65%,97%{opacity:0}100%{opacity:1}}
+  @keyframes s2b{0%,62%{opacity:0}65%,97%{opacity:1}100%{opacity:0}}
+  .vaok{animation:vok 10s infinite;opacity:0}
+  @keyframes vok{0%,64%{opacity:0;transform:scale(.6)}68%,97%{opacity:1;transform:none}100%{opacity:0}}
+  /* tarjeta simplificada: frase + 3-4 beneficios; la animación lleva el protagonismo */
+  .vc-list{list-style:none;display:grid;gap:9px;margin-top:16px}
+  .vc-list li{font-size:14px;color:var(--ink2);padding-left:24px;position:relative;line-height:1.4}
+  .vc-list li::before{content:'';position:absolute;left:0;top:2px;width:16px;height:16px;border-radius:50%;background:var(--accent-soft)}
+  .vc-list li::after{content:'';position:absolute;left:5px;top:6px;width:6px;height:3px;border-left:2px solid var(--accent);border-bottom:2px solid var(--accent);transform:rotate(-45deg)}
+  .vc-demo{background:linear-gradient(160deg,#EEF2FF 0%,#F3F4F6 70%);border-radius:16px;padding:22px}
+  .vc-demo .ui{font-size:13px;box-shadow:0 18px 40px rgba(17,24,39,.14)}
+  .vc-demo .ui-b{padding:14px;gap:10px}
+  .vc-demo .ui-card b{font-size:13.5px}
+  .vc-demo .fs{font-size:11px;padding:4px 9px}
+  /* Reloj: consentimiento → marcajes → aclaraciones → firma de jornada (10 s) */
+  .r1{animation:rp1 10s infinite}.r2{animation:rp2 10s infinite;opacity:0}.r3{animation:rp3 10s infinite;opacity:0}
+  @keyframes rp1{0%,29%{opacity:1}32%,97%{opacity:0}100%{opacity:1}}
+  @keyframes rp2{0%,29%{opacity:0}32%,59%{opacity:1}62%,100%{opacity:0}}
+  @keyframes rp3{0%,59%{opacity:0}62%,97%{opacity:1}100%{opacity:0}}
+  .rs1{animation:rs1 10s infinite}.rs2{animation:rs2 10s infinite}.rs3{animation:rs3 10s infinite}.rs4{animation:rs4 10s infinite}
+  @keyframes rs1{0%,29%{background:var(--accent);color:#fff}31%,100%{background:var(--bg);color:var(--muted)}}
+  @keyframes rs2{0%,29%,61%,100%{background:var(--bg);color:var(--muted)}31%,59%{background:var(--accent);color:#fff}}
+  @keyframes rs3{0%,59%,81%,100%{background:var(--bg);color:var(--muted)}61%,79%{background:var(--accent);color:#fff}}
+  @keyframes rs4{0%,79%,99%{background:var(--bg);color:var(--muted)}81%,97%{background:var(--green);color:#fff}}
+  .ra2 > :nth-child(1){animation:q1a 10s infinite}.ra2 > :nth-child(2){animation:q1b 10s infinite;opacity:0}
+  @keyframes q1a{0%,14%{opacity:1}17%,97%{opacity:0}100%{opacity:1}}
+  @keyframes q1b{0%,14%{opacity:0}17%,97%{opacity:1}100%{opacity:0}}
+  .rb2 > :nth-child(1){animation:q2a 10s infinite}.rb2 > :nth-child(2){animation:q2b 10s infinite;opacity:0}
+  @keyframes q2a{0%,44%{opacity:1}47%,97%{opacity:0}100%{opacity:1}}
+  @keyframes q2b{0%,44%{opacity:0}47%,97%{opacity:1}100%{opacity:0}}
+  .rc2 > :nth-child(1){animation:q3a 10s infinite}.rc2 > :nth-child(2){animation:q3b 10s infinite;opacity:0}
+  @keyframes q3a{0%,71%{opacity:1}74%,97%{opacity:0}100%{opacity:1}}
+  @keyframes q3b{0%,71%{opacity:0}74%,97%{opacity:1}100%{opacity:0}}
+  .rd2 > :nth-child(1){animation:q4a 10s infinite}.rd2 > :nth-child(2){animation:q4b 10s infinite;opacity:0}
+  @keyframes q4a{0%,82%{opacity:1}85%,97%{opacity:0}100%{opacity:1}}
+  @keyframes q4b{0%,82%{opacity:0}85%,97%{opacity:1}100%{opacity:0}}
+  /* complementarias */
+  .comp-h{font-size:15px;font-weight:600;margin:30px 0 4px}
+  .comp-sub{font-size:13.5px;color:var(--muted);margin-bottom:12px}
+  .vc.comp{display:block;box-shadow:none;padding:18px}
+  .vc.comp .vc-pain{margin-top:12px}
+  .comp-actions{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-top:14px}
+  .comp-demo{max-width:420px;margin-top:14px;animation:in .2s}
+  .vc-link{border:none;background:none;padding:0;font-size:13px;font-weight:600;color:var(--accent);cursor:pointer}
+  @media (prefers-reduced-motion:reduce){
+    .screen,.ui *{animation:none!important}
+    .sw > *{opacity:0!important}.sw > :last-child{opacity:1!important}
+    .ap1,.ap2,.ap3{opacity:1!important;transform:none!important}
+    .ui-face .scan{display:none}
+    .pA,.r1,.r2{opacity:0!important}.pB,.r3{opacity:1!important}.ui-bar.up i{width:100%}.exfill{width:100%}.exaud,.vaok{opacity:1!important}
+  }
+
+  /* calculadora: fondos claros, resumen de inversión con protagonismo */
+  .calc{margin-top:12px}
+  .calc h1{font-size:30px;margin-top:10px}
+  .calc .sub{font-size:15px}
+  .layout{display:grid;grid-template-columns:minmax(0,1fr) 370px;gap:24px;align-items:start;margin-top:20px}
+  .config{display:flex;flex-direction:column;gap:16px;min-width:0}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:18px 20px}
+  .sh{display:flex;align-items:baseline;gap:10px;margin-bottom:12px}
+  .sh h2{font-size:16px}
+  .sh p{color:var(--muted);font-size:13px;margin-left:auto}
+  .emp-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .emp-row input{font:inherit;font-size:28px;font-weight:700;width:130px;text-align:center;border:1.5px solid var(--line);border-radius:10px;padding:6px 10px;background:var(--soft);color:var(--ink);outline:none;-moz-appearance:textfield;font-variant-numeric:tabular-nums}
+  .emp-row input:focus{border-color:var(--accent);background:#fff}
+  .emp-row input::-webkit-outer-spin-button,.emp-row input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+  .emp-row .seg{font-size:13px;color:var(--muted)}.emp-row .seg b{color:var(--ink);font-weight:600}
+  .list{display:flex;flex-direction:column;gap:8px}
+  .fitem{display:flex;align-items:flex-start;gap:14px;border:1.5px solid var(--line);border-radius:12px;padding:12px 14px;cursor:pointer;background:#fff;transition:border-color .15s,background .15s}
+  .fitem:hover{border-color:var(--accent-line)}
+  .fitem.on{border-color:var(--accent);background:var(--accent-soft)}
+  .chk{width:20px;height:20px;border-radius:6px;border:1.5px solid #D1D5DB;display:inline-flex;align-items:center;justify-content:center;font-size:12px;color:#fff;flex-shrink:0;font-weight:700;margin-top:1px;background:#fff}
+  .fitem.on .chk{background:var(--accent);border-color:var(--accent)}
+  .fbody{flex:1;min-width:0}
+  .fn{font-weight:600;font-size:14.5px}
+  .fd{font-size:12.5px;color:var(--muted);margin-top:2px}
+  .rec{font-size:11px;font-weight:600;padding:2px 8px;border-radius:100px;background:var(--green-soft);color:var(--green-t);margin-left:6px;vertical-align:1px}
+  .tagn{font-size:11px;font-weight:600;padding:2px 8px;border-radius:100px;background:var(--purple-soft);color:var(--purple-t);margin-left:6px;vertical-align:1px}
+  .fnote{font-size:12px;color:var(--amber-t);margin-top:4px}
+  .ver-inc{border:none;background:none;padding:0;margin-top:6px;font-size:12px;font-weight:600;color:var(--accent);cursor:pointer}
+  .finc{margin-top:10px;padding:12px 14px;background:#fff;border:1px solid var(--line);border-radius:10px;cursor:default}
+  .finc ul{list-style:none;display:grid;grid-template-columns:repeat(2,1fr);gap:6px 14px}
+  .finc li{font-size:12.5px;color:var(--ink2);padding-left:16px;position:relative;line-height:1.35}
+  .finc li::before{content:'✓';position:absolute;left:0;color:var(--green-t);font-weight:700}
+  .fp{display:flex;flex-direction:column;align-items:flex-end;text-align:right;min-width:110px;font-variant-numeric:tabular-nums}
+  .fpm{font-weight:700;font-size:15px;white-space:nowrap}
+  .fpm small{font-size:11.5px;font-weight:500;color:var(--muted)}
+  .fps{font-size:11.5px;color:var(--muted);margin-top:2px;white-space:nowrap}
+  .fp.add .fpm{color:var(--accent)}
+  .plans{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .plan{border:1.5px solid var(--line);border-radius:12px;padding:14px;cursor:pointer;background:#fff;transition:border-color .15s}
+  .plan:hover{border-color:var(--accent-line)}
+  .plan.sel{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+  .plan.na{opacity:.55;cursor:not-allowed;background:var(--soft)}
+  .pname{font-weight:700;font-size:17px}
+  .ptag{color:var(--muted);font-size:12.5px;margin:4px 0 8px;line-height:1.35}
+  .price{font-size:24px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+  .price small{font-size:12px;color:var(--muted);font-weight:500;letter-spacing:0}
+  .peremp{font-size:12px;color:var(--muted)}
+  .dif{margin-top:10px;font-size:13px;color:var(--ink2);background:var(--accent-soft);border-radius:10px;padding:9px 12px}
+  .dif:empty{display:none}
+
+  /* prioridad: ¿qué quieres resolver primero? */
+  .prio.falta{border-color:var(--amber);box-shadow:0 0 0 3px var(--amber-soft),var(--shadow)}
+  .prio-sub{font-size:13px;color:var(--muted);margin:-6px 0 12px}
+  .prio-aviso{font-size:12.5px;color:var(--amber-t);background:var(--amber-soft);border-radius:10px;padding:8px 12px;margin-bottom:10px}
+  .prio-pick{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .prio-pick button{display:flex;align-items:center;gap:10px;text-align:left;border:1.5px solid var(--line);border-radius:12px;background:#fff;padding:12px 14px;font-weight:600;font-size:14px;color:var(--ink);cursor:pointer;transition:border-color .15s,background .15s}
+  .prio-pick button:hover{border-color:var(--accent);background:var(--accent-soft)}
+  .prio-pick .need-ico{width:32px;height:32px;border-radius:9px}
+  .prio-pick .need-ico svg{width:18px;height:18px}
+  .prio-list{list-style:none;display:flex;flex-direction:column;gap:8px}
+  .prio-it{display:flex;align-items:center;gap:10px;border:1.5px solid var(--line);border-radius:12px;background:#fff;padding:8px 10px;transition:border-color .15s,box-shadow .15s}
+  .prio-it.first{border-color:var(--accent);background:var(--accent-soft)}
+  .prio-it.drag{box-shadow:0 10px 28px rgba(17,24,39,.18);border-color:var(--accent);position:relative;z-index:2}
+  .prio-n{width:24px;height:24px;border-radius:50%;background:var(--bg);color:var(--ink2);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-variant-numeric:tabular-nums}
+  .prio-it.first .prio-n{background:var(--accent);color:#fff}
+  .prio-nm{flex:1;min-width:0;font-weight:600;font-size:14px}
+  .prio-nm small{display:block;font-weight:500;font-size:11.5px;color:var(--accent)}
+  .prio-h{width:30px;height:36px;border:none;background:none;color:#9CA3AF;cursor:grab;touch-action:none;display:flex;align-items:center;justify-content:center;flex-shrink:0;border-radius:8px}
+  .prio-h:active{cursor:grabbing}
+  .prio-h svg{width:16px;height:16px}
+  .prio-mv{width:36px;height:36px;border:1.5px solid var(--line);background:#fff;border-radius:9px;color:var(--ink2);font-size:15px;font-weight:700;cursor:pointer;flex-shrink:0}
+  .prio-mv:hover:not(:disabled){border-color:var(--accent);color:var(--accent)}
+  .prio-mv:disabled{opacity:.3;cursor:not-allowed}
+  .prio-acts{display:flex;justify-content:flex-end;gap:10px;margin-top:12px}
+  .prio-ok{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .prio-ok .txt{flex:1;min-width:200px;font-size:14px;color:var(--ink2)}
+  .prio-ok .txt b{color:var(--ink)}
+  .prio-ok .txt small{display:block;font-size:12.5px;color:var(--muted);margin-top:2px}
+  .btn.sec{background:#fff;color:var(--accent);border:1.5px solid var(--accent);padding:9px 16px;font-size:14px}
+  .btn.sec:hover{background:var(--accent-soft)}
+  .tb-prio{font-size:13px;color:var(--ink2);background:var(--accent-soft);border-radius:10px;padding:10px 12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .tb-prio b{color:var(--ink)}
+  .tb-prio.no{background:var(--amber-soft);color:var(--amber-t)}
+  .tb-prio button{margin-left:auto;border:none;background:none;padding:0;font-size:12.5px;font-weight:600;color:var(--accent);cursor:pointer;text-decoration:underline}
+  .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+  .totbox{position:sticky;top:16px;background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:0 16px 48px rgba(17,24,39,.14);overflow:hidden}
+  .tb-head{background:var(--navy);color:#fff;padding:20px 20px 18px;position:relative;overflow:hidden}
+  .tb-head::after{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(320px 140px at 100% 0%,rgba(37,99,235,.45),transparent 70%)}
+  .tb-head > *{position:relative;z-index:1}
+  .tb-head .lab{color:var(--on-navy2)}
+  .tb-head h2{font-size:15px;font-weight:600;color:var(--on-navy2)}
+  .tb-total{font-size:36px;font-weight:700;letter-spacing:-.03em;font-variant-numeric:tabular-nums;line-height:1.1;margin-top:6px;color:#fff}
+  .tb-total small{font-size:13px;font-weight:500;color:var(--on-navy2);letter-spacing:0}
+  .tb-per{font-size:12.5px;color:#D1D5DB;margin-top:4px}
+  .tb-per b{color:#fff}
+  .tb-save{display:inline-block;font-size:12px;color:#A7F3D0;font-weight:600;margin-top:10px;background:rgba(16,185,129,.14);padding:4px 10px;border-radius:100px}
+  .tb-iva{font-size:11px;color:var(--on-navy2);margin-top:8px}
+  .tb-body{padding:18px 20px 20px;display:flex;flex-direction:column;gap:16px}
+  .lab{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:6px}
+  .bill{display:grid;grid-template-columns:1fr 1fr;background:var(--bg);border-radius:10px;padding:3px;gap:3px}
+  .bill button{border:none;background:transparent;padding:8px;border-radius:8px;font-weight:600;font-size:13px;color:var(--muted);cursor:pointer}
+  .bill button.on{background:#fff;color:var(--ink);box-shadow:0 1px 3px rgba(17,24,39,.12)}
+  .save-tag{font-size:11px;color:var(--green-t);font-weight:700}
+  .tl{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid #F3F4F6;font-size:13px}
+  .tl .ln{flex:1}.tl .ln small{display:block;font-size:11px;color:var(--muted)}
+  .tl b{font-variant-numeric:tabular-nums;white-space:nowrap;font-weight:600}
+  .tl b.inc0{color:var(--green-t);font-weight:500}
+  .tb-flag{font-size:12px;color:var(--amber-t);font-weight:500;margin-top:6px}.tb-flag:empty{display:none}
+  .tb-inc{display:flex;flex-wrap:wrap;gap:5px}
+  .tb-inc span{font-size:11.5px;background:var(--green-soft);color:var(--green-t);font-weight:500;padding:4px 9px;border-radius:100px}
+  .tb-trial{font-size:12.5px;color:var(--ink2);text-align:center;margin-top:-6px}
+  .wa{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;font-size:13px;color:var(--ink2);font-weight:500;padding-top:4px;border-top:1px solid var(--line)}
+  .wa span{margin-top:10px}
+  .btn-wa{display:inline-flex;align-items:center;gap:8px;background:#25D366;color:#fff;font-weight:600;font-size:14px;padding:10px 18px;border-radius:12px;text-decoration:none}
+  .btn-wa svg{width:18px;height:18px;fill:#fff}
+  .foot-note{font-size:12px;color:var(--muted);line-height:1.6;margin:22px 0 0;max-width:760px}
+
+  /* modal */
+  .ov{position:fixed;inset:0;background:rgba(17,24,39,.55);display:flex;align-items:center;justify-content:center;padding:20px;z-index:100;animation:in .15s}
+  .modal{background:var(--card);border-radius:18px;box-shadow:0 20px 60px rgba(17,24,39,.3);padding:26px;max-width:420px;width:100%;position:relative;animation:in .2s}
+  .modal-x{position:absolute;top:14px;right:16px;border:none;background:none;font-size:18px;color:var(--muted);cursor:pointer;line-height:1}
+  .modal h2{font-size:22px;font-weight:700;letter-spacing:-.01em}
+  .modal-sub{color:var(--muted);font-size:14px;margin-top:6px;line-height:1.45}
+  .modal-f{display:grid;gap:10px;margin:18px 0 4px}
+  .modal-f input{font:inherit;font-size:15px;padding:12px 14px;border:1.5px solid var(--line);border-radius:12px;background:#fff;outline:none}
+  .modal-f input:focus{border-color:var(--accent)}
+  .modal-f input.err{border-color:#EF4444;background:#FEF2F2}
+  .modal-err{font-size:12.5px;color:#B91C1C;margin:6px 0 2px}
+  .modal .btn.big{margin-top:14px}
+  .mbar{display:none}
+  @media (max-width:900px){ .mbar{display:flex} }
+  .vc-demo-tg{display:none;border:none;background:none;padding:0;margin-top:14px;font-size:13px;font-weight:600;color:var(--accent);cursor:pointer}
+  /* Resumen de la inversión dentro del modal: el usuario no pierde de vista qué está contratando */
+  .modal-sum{margin-top:16px;border:1px solid var(--line);border-radius:12px;background:var(--soft);padding:12px 14px;font-size:13px}
+  .modal-sum .ms-l{display:flex;justify-content:space-between;gap:10px;padding:3px 0;color:var(--ink2)}
+  .modal-sum .ms-l b{font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums;white-space:nowrap}
+  .modal-sum .ms-t{display:flex;justify-content:space-between;gap:10px;border-top:1px solid var(--line);margin-top:6px;padding-top:8px;font-weight:700;color:var(--ink)}
+  .modal-sum .ms-t span:last-child{font-variant-numeric:tabular-nums}
+  .modal-sum .ms-n{font-size:12px;color:var(--muted);margin-top:4px}
+  .modal-sum .ms-p{margin-top:8px;font-size:12.5px;color:var(--ink2)}
+  .modal-foot{text-align:center;font-size:12.5px;color:var(--muted);margin-top:12px}
+  .modal-foot b{color:var(--ink);font-weight:600}
+
+  @media (max-width:900px){
+    .vc{grid-template-columns:1fr}
+    .vc-demo{padding:16px}
+    .layout{grid-template-columns:1fr}
+    body.calc-on{padding-bottom:96px}
+    /* Móvil: el desglose vive dentro de la página (siempre visible al bajar), no en una hoja flotante. */
+    .totbox{position:static;scroll-margin-top:12px}
+    /* Barra inferior: solo mientras el desglose está más abajo. Se oculta al llegar a él, al pasarlo
+       (no tapa el footer del sitio), con el teclado abierto y con el modal. */
+    .mbar{position:fixed;left:0;right:0;bottom:0;z-index:50;display:flex;align-items:center;gap:12px;padding:12px 16px;padding-bottom:max(12px,env(safe-area-inset-bottom));background:var(--navy);color:#fff;border-radius:18px 18px 0 0;box-shadow:0 -8px 30px rgba(17,24,39,.2);transition:transform .25s cubic-bezier(.2,.7,.2,1)}
+    .mbar.oculta,body.kb-on .mbar,body.modal-on .mbar{transform:translateY(120%);pointer-events:none}
+    .mbar .bt{font-size:21px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+    .mbar .bt small{font-size:12px;font-weight:500;color:var(--on-navy2)}
+    .mbar .bs{font-size:11.5px;color:var(--on-navy2)}
+    .mbar button{margin-left:auto;border:1px solid rgba(255,255,255,.25);background:transparent;color:#fff;font-weight:600;font-size:13px;padding:9px 12px;border-radius:10px;cursor:pointer;white-space:nowrap}
+    /* Modal como hoja inferior que sigue al área visible (visualViewport): el teclado no la corta. */
+    .ov{align-items:flex-end;padding:0;top:var(--vvt,0px);bottom:auto;height:var(--vvh,100dvh)}
+    .modal{max-width:none;border-radius:20px 20px 0 0;max-height:calc(var(--vvh,100dvh) - 16px);overflow-y:auto;overscroll-behavior:contain;padding:22px 20px max(20px,env(safe-area-inset-bottom))}
+    /* Demos de resultado: plegables en móvil para no obligar a un scroll largo */
+    .vc-demo.m-hide{display:none}
+    .vc-demo-tg{display:inline-block}
+    .ideal-g{grid-template-columns:1fr}
+    .ideal-cta{min-width:0}
+  }
+  @media (max-width:560px){
+    .wrap{padding:12px 16px 40px}
+    .start-h{padding:26px 22px 66px}
+    .start-h h1{font-size:28px}
+    .start-h .sub{font-size:15px}
+    .start-b{margin:-46px 8px 0;padding:16px}
+    .needs{grid-template-columns:1fr}
+    .q h1{font-size:23px}
+    .res-h{padding:24px 22px}
+    .res-h h1{font-size:25px}
+    .vc{padding:18px}
+    .vc-top{flex-wrap:wrap}
+    .vc-add{width:100%}
+    .otras{grid-template-columns:1fr}
+    .vc-mini{flex-wrap:wrap}.vc-mini-add{width:100%}
+    .ideal{padding:22px}
+    .ideal h2{font-size:21px}
+    .calc h1{font-size:24px}
+    .subq .ops{grid-template-columns:1fr}
+    .finc ul{grid-template-columns:1fr}
+    .fitem{flex-wrap:wrap}
+    .fp{width:100%;flex-direction:row;justify-content:space-between;align-items:baseline;padding-left:34px;min-width:0}
+    .plans{grid-template-columns:1fr}
+    .prio-pick{grid-template-columns:1fr}
+    /* iPhone hace zoom en campos de menos de 16 px y la página queda acercada al cerrar el teclado */
+    .modal-f input,.txt-row input{font-size:16px}
+  }
+  body.modal-on{overflow:hidden}
+
+  /* calculadora1: contratación con Stripe */
+  .test-band{background:var(--amber-soft);color:var(--amber-t);border:1px solid #FDE68A;border-radius:12px;padding:9px 14px;font-size:13px;font-weight:500;margin:0 0 14px}
+  .test-band b{font-weight:700}
+  .test-band code{font-family:ui-monospace,Menlo,monospace;background:#fff;padding:1px 6px;border-radius:6px;border:1px solid #FDE68A}
+  .cobro{border:1.5px solid var(--accent-line);background:var(--accent-soft);border-radius:12px;padding:12px 14px}
+  .cobro .lab{color:var(--accent)}
+  .cb-l,.cb-t{display:flex;justify-content:space-between;gap:10px;font-size:13px;padding:3px 0;color:var(--ink2)}
+  .cb-l b,.cb-t b{font-variant-numeric:tabular-nums;white-space:nowrap}
+  .cb-l b{font-weight:600;color:var(--ink)}
+  .cb-t{border-top:1px solid var(--accent-line);margin-top:6px;padding-top:8px;font-size:15px;font-weight:700;color:var(--ink)}
+  .cb-n{font-size:11.5px;color:var(--muted);margin-top:6px;line-height:1.4}
+  .pay-lock{display:inline-flex;align-items:center;gap:6px}
+  .pay-lock svg{width:14px;height:14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top"><div class="logo">sora<span>.</span></div></header>
+  <div class="test-band" id="test-band" hidden><b>Modo de prueba:</b> no se hacen cobros reales. Paga con la tarjeta <code>4242 4242 4242 4242</code>, cualquier fecha futura y cualquier CVC.</div>
+  <div id="app"></div>
+</div>
+<!-- Barra de precio y modal: fuera de #app. Las pantallas entran con una animación que usa transform y,
+     mientras dura, cualquier elemento fixed dentro de ella se posiciona contra la pantalla y no contra la ventana
+     (por eso el modal se desfasaba al re-pintarse). -->
+<div id="flotantes"></div>
+
+<script>
+
+// GENERADO por build.js desde sora-pricing/engine — NO EDITAR A MANO.
+const SORA_PRICING_CONFIG = {
+  "version": "2026-10-28b",
+  "fuente": "Sheet 'Sora · Pricing y funcionalidades' (docs.google.com/spreadsheets/d/1kKyKSufysHTqZxuXGIKselkJuwI-7KAYrk_foPhDuT8)",
+  "moneda": "MXN sin IVA, por empleado activo al mes",
+  "brackets": [
+    {
+      "min": 1,
+      "max": 249,
+      "m1": 42,
+      "m2": 70
+    },
+    {
+      "min": 250,
+      "max": 999,
+      "m1": 30,
+      "m2": 51
+    },
+    {
+      "min": 1000,
+      "max": 1999,
+      "m1": 23,
+      "m2": 38
+    },
+    {
+      "min": 2000,
+      "max": 2999,
+      "m1": 19,
+      "m2": 32
+    },
+    {
+      "min": 3000,
+      "max": 4999,
+      "m1": 18,
+      "m2": 29
+    },
+    {
+      "min": 5000,
+      "max": 7999,
+      "m1": 15,
+      "m2": 26
+    },
+    {
+      "min": 8000,
+      "max": 9999,
+      "m1": 14,
+      "m2": 22
+    },
+    {
+      "min": 10000,
+      "max": 24999,
+      "m1": 11,
+      "m2": 19
+    },
+    {
+      "min": 25000,
+      "max": 1000000000,
+      "m1": 10,
+      "m2": 16
+    }
+  ],
+  "planes": [
+    "estandar",
+    "pro"
+  ],
+  "nombresPlan": {
+    "estandar": "Estándar",
+    "pro": "PRO"
+  },
+  "factorPlan": {
+    "estandar": 0.75,
+    "pro": 1.0
+  },
+  "fracStack": {
+    "ausencias": 0.075,
+    "vacaciones": 0.125,
+    "demandas": 0.025
+  },
+  "fracStackMinimo": 1,
+  "piso": {
+    "hastaEmpleados": 99,
+    "estandar": 499,
+    "pro": 699,
+    "nota": "Cubre 1 solución (Expediente, Recibos o solo Reloj checador). La 2ª solución se cobra encima a su precio normal por empleado. Decisión Diego 16-oct y 28-oct-2026."
+  },
+  "complementos": {
+    "ausencias": {
+      "nombre": "Ausencias",
+      "pctM1": 0.075,
+      "minimo": 1,
+      "planMinimo": null,
+      "incluido": true,
+      "nota": "Incluida sin costo en todos los planes desde 14-oct-2026 (Diego). pctM1 queda como histórico; fracStack no cambia."
+    },
+    "vacaciones": {
+      "nombre": "Vacaciones",
+      "pctM1": 0.125,
+      "minimo": 1,
+      "planMinimo": "estandar"
+    }
+  },
+  "relojChecador": {
+    "nombre": "Reloj checador",
+    "nota": "Solo reloj: Estándar = 'solo', PRO = 'soloPro' (Diego 28-oct-2026). Con Documentos o Recibos ('conModulo'): mismo precio en los planes. Solo reloj con ≤99 empleados usa el piso del plan ($499 Estándar / $699 PRO), igual que un módulo.",
+    "brackets": [
+      {
+        "min": 1,
+        "max": 249,
+        "solo": 28,
+        "conModulo": 17,
+        "soloPro": 33
+      },
+      {
+        "min": 250,
+        "max": 999,
+        "solo": 25,
+        "conModulo": 15,
+        "soloPro": 31
+      },
+      {
+        "min": 1000,
+        "max": 1999,
+        "solo": 23,
+        "conModulo": 14,
+        "soloPro": 27
+      },
+      {
+        "min": 2000,
+        "max": 2999,
+        "solo": 18,
+        "conModulo": 11,
+        "soloPro": 22
+      },
+      {
+        "min": 3000,
+        "max": 4999,
+        "solo": 13,
+        "conModulo": 8,
+        "soloPro": 16
+      },
+      {
+        "min": 5000,
+        "max": 7999,
+        "solo": 10,
+        "conModulo": 7,
+        "soloPro": 13
+      },
+      {
+        "min": 8000,
+        "max": 9999,
+        "solo": 9,
+        "conModulo": 6,
+        "soloPro": 11
+      },
+      {
+        "min": 10000,
+        "max": 24999,
+        "solo": 6,
+        "conModulo": 4,
+        "soloPro": 8
+      },
+      {
+        "min": 25000,
+        "max": 1000000000,
+        "solo": 6,
+        "conModulo": 4,
+        "soloPro": 8
+      }
+    ]
+  },
+  "demandas": {
+    "costo": 0,
+    "planMinimo": null,
+    "requiereDocumentos": true
+  },
+  "recibosSinDocumentos": {
+    "planMinimo": "estandar"
+  },
+  "descuentoAnual": 0.15,
+  "soraGoHasta": 99,
+  "descontinuados": [
+    "lite",
+    "recibos_lite",
+    "docs_lite",
+    "ligero"
+  ],
+  "planesDescontinuados": {
+    "basico": "Básico ya no existe (Diego 28-oct-2026). Solo Estándar y PRO."
+  }
+};
+// Motor de pricing de Sora — ÚNICA implementación en JS.
+// No se edita a mano en ningún consumidor: build.js lo inyecta en la
+// calculadora (index.html) y en el script del skill reunion-comercial.
+// Los números viven en pricing-config.json. La fuente de verdad es el Sheet.
+(function (root, factory) {
+  root.SoraPricingFactory = factory;
+  if (typeof module === 'object' && module.exports) module.exports = factory;
+})(typeof globalThis !== 'undefined' ? globalThis : this, function (CFG) {
+  'use strict';
+
+  // Redondeo "half up" (igual que Math.round para positivos y que el Sheet).
+  const R = x => Math.floor(x + 0.5 + 1e-9);
+  const PLANES = CFG.planes;
+  const rank = p => PLANES.indexOf(p);
+
+  function bracket(e) {
+    for (const b of CFG.brackets) if (e >= b.min && e <= b.max) return b;
+    return CFG.brackets[CFG.brackets.length - 1];
+  }
+
+  function fracStack(e) {
+    const m1 = bracket(e).m1;
+    return Object.values(CFG.fracStack)
+      .reduce((s, f) => s + Math.max(CFG.fracStackMinimo, R(m1 * f)), 0);
+  }
+
+  // Precio por empleado del plan en el bracket de e (pesos enteros).
+  function nucleo(plan, e, modulos) {
+    const b = bracket(e);
+    const base = modulos >= 2 ? b.m2 : b.m1;
+    return R((base - fracStack(e)) * CFG.factorPlan[plan]);
+  }
+
+  // Candado de monotonía: el total nunca baja al agregar empleados.
+  // Evalúa el total "como si" e estuviera en el techo de cada bracket
+  // anterior y toma el máximo.
+  function conCandado(fnTotal, e, brackets) {
+    let v = fnTotal(e), candado = false;
+    for (const b of (brackets || CFG.brackets)) {
+      if (b.min > e) break;
+      const x = Math.min(e, b.max);
+      const t = fnTotal(x);
+      if (t > v) { v = t; candado = true; }
+    }
+    return { total: v, candado };
+  }
+
+  function complementoPorEmp(clave, e) {
+    const c = CFG.complementos[clave];
+    if (c.incluido) return 0;   // incluido sin costo (Ausencias desde 14-oct-2026)
+    return Math.max(c.minimo, R(bracket(e).m1 * c.pctM1));
+  }
+
+  // Reloj checador: tabla propia por tramo, con candado. Con módulo: igual en los planes.
+  // Solo reloj: PRO usa soloPro y con ≤99 empleados aplica el piso del plan (Diego 28-oct-2026).
+  function relojPorEmp(e, conModulo, plan = 'estandar') {
+    const bs = CFG.relojChecador.brackets;
+    let b = bs[bs.length - 1];
+    for (const x of bs) if (e >= x.min && e <= x.max) { b = x; break; }
+    if (conModulo) return b.conModulo;
+    return plan === 'pro' ? b.soloPro : b.solo;
+  }
+  function relojMensual(e, conModulo, plan = 'estandar') {
+    const r = conCandado(x => x * relojPorEmp(x, conModulo, plan), e, CFG.relojChecador.brackets);
+    let total = r.total, piso = false;
+    if (!conModulo && e <= CFG.piso.hastaEmpleados && CFG.piso[plan] > total) { total = CFG.piso[plan]; piso = true; }
+    return { total, candado: r.candado, porEmp: relojPorEmp(e, conModulo, plan), piso };
+  }
+
+  function planMensual(plan, e, modulos) {
+    if (!modulos) return { total: 0, candado: false, piso: false };   // solo reloj checador: sin módulo, sin piso
+    const r = conCandado(x => x * nucleo(plan, x, modulos), e);
+    let total = r.total, piso = false;
+    if (e <= CFG.piso.hastaEmpleados) {
+      // El piso cubre UN módulo. El 2º módulo se cobra encima a su precio normal (Diego 16-oct-2026).
+      const r1 = modulos >= 2 ? conCandado(x => x * nucleo(plan, x, 1), e).total : r.total;
+      if (CFG.piso[plan] > r1) { total = CFG.piso[plan] + (r.total - r1); piso = true; }
+    }
+    return { total, candado: r.candado, piso };
+  }
+
+  function complementosMensual(claves, e) {
+    if (!claves.length) return { total: 0, candado: false, porEmp: 0 };
+    const porEmpEn = x => claves.reduce((s, k) => s + complementoPorEmp(k, x), 0);
+    const r = conCandado(x => x * porEmpEn(x), e);
+    return { total: r.total, candado: r.candado, porEmp: porEmpEn(e) };
+  }
+
+  // Plan mínimo que exige la selección + por qué.
+  function planMinimo(sel) {
+    const razones = [];
+    let min = PLANES[0];
+    const sube = (p, razon) => { if (p && rank(p) > rank(min)) min = p; if (p && rank(p) > 0) razones.push(razon); };
+    for (const k of sel.complementos) sube(CFG.complementos[k].planMinimo, CFG.complementos[k].nombre + ' requiere Estándar o superior');
+    if (sel.demandas) sube(CFG.demandas.planMinimo, 'Demandas se incluye desde Estándar');
+    if (sel.recibos && !sel.documentos) sube(CFG.recibosSinDocumentos.planMinimo, 'Recibos sin Documentos requiere Estándar o superior');
+    return { plan: min, razones };
+  }
+
+  function normaliza(input) {
+    const e = parseInt(input.empleados, 10);
+    if (!(e >= 1)) throw new Error('empleados debe ser un entero >= 1');
+    const plan = (input.plan || 'pro').toLowerCase();
+    if ((CFG.planesDescontinuados || {})[plan]) throw new Error(CFG.planesDescontinuados[plan]);
+    if (rank(plan) < 0) throw new Error('plan inválido: ' + plan + ' (estandar | pro)');
+    const documentos = input.documentos !== undefined ? !!input.documentos : true;
+    const recibos = !!input.recibos;
+    const reloj = !!input.reloj;
+    if (!documentos && !recibos && !reloj) throw new Error('Se necesita Documentos, Recibos o Reloj checador');
+    const complementos = [];
+    for (const k of (input.complementos || [])) {
+      const key = String(k).toLowerCase();
+      if (CFG.descontinuados.includes(key)) throw new Error('"' + key + '" está descontinuado desde 27-ago-2026');
+      if (key === 'demandas') continue; // se maneja con el flag demandas
+      if (!CFG.complementos[key]) throw new Error('complemento desconocido: ' + key);
+      if (!complementos.includes(key)) complementos.push(key);
+    }
+    let demandas = !!input.demandas || (input.complementos || []).map(String).map(s => s.toLowerCase()).includes('demandas');
+    const avisos = [];
+    if (demandas && !documentos) { demandas = false; avisos.push('Demandas requiere Documentos; se ignoró'); }
+    const facturacion = (input.facturacion || 'mensual').toLowerCase().startsWith('anu') ? 'anual' : 'mensual';
+    const incluidos = complementos.filter(k => CFG.complementos[k].incluido);
+    return { empleados: e, plan, documentos, recibos, reloj, complementos: complementos.filter(k => !CFG.complementos[k].incluido), incluidos, demandas, facturacion, avisos };
+  }
+
+  function cotiza(input) {
+    const s = normaliza(input);
+    const e = s.empleados;
+    const modulos = (s.documentos ? 1 : 0) + (s.recibos ? 1 : 0);
+    const min = planMinimo(s);
+    const planAplicado = rank(s.plan) < rank(min.plan) ? min.plan : s.plan;
+    const forzado = planAplicado !== s.plan;
+
+    const p = planMensual(planAplicado, e, modulos);
+    const c = complementosMensual(s.complementos, e);
+    const rl = s.reloj ? relojMensual(e, modulos > 0, planAplicado) : { total: 0, candado: false, porEmp: 0, piso: false };
+    const totalMensual = p.total + c.total + rl.total;
+    const anualPorMes = R(totalMensual * (1 - CFG.descuentoAnual));
+
+    const porPlan = {};
+    for (const pl of PLANES) {
+      const disponible = rank(pl) >= rank(min.plan);
+      const pm = planMensual(pl, e, modulos);
+      const t = pm.total + c.total + (s.reloj ? relojMensual(e, modulos > 0, pl).total : 0);
+      porPlan[pl] = { disponible, totalMensual: t, anualPorMes: R(t * (1 - CFG.descuentoAnual)), planMensual: pm.total };
+    }
+
+    return {
+      empleados: e,
+      segmento: e <= CFG.soraGoHasta ? 'Sora Go' : 'Enterprise',
+      documentos: s.documentos, recibos: s.recibos, modulos,
+      complementos: s.complementos,
+      complementosIncluidos: s.incluidos,
+      demandasIncluida: s.demandas,
+      planSolicitado: s.plan,
+      planAplicado,
+      planForzado: forzado,
+      razonesPlan: forzado ? min.razones : [],
+      avisos: s.avisos,
+      nucleoPorEmp: modulos ? nucleo(planAplicado, e, modulos) : 0,
+      complementosPorEmp: c.porEmp,
+      planMensual: p.total,
+      complementosMensual: c.total,
+      relojChecador: s.reloj,
+      relojPorEmp: rl.porEmp,
+      relojMensual: rl.total,
+      totalMensual,                                   // = MRR
+      anualPorMes,                                    // −15% sobre el total, redondeado al final
+      anualTotal12: anualPorMes * 12,
+      porEmpMensual: totalMensual / e,
+      porEmpAnual: (totalMensual * (1 - CFG.descuentoAnual)) / e,
+      facturacion: s.facturacion,
+      totalSegunFacturacion: s.facturacion === 'anual' ? anualPorMes : totalMensual,
+      candadoAplicado: p.candado || c.candado || rl.candado,
+      pisoAplicado: p.piso || rl.piso,
+      porPlan,
+      versionConfig: CFG.version
+    };
+  }
+
+  return { cotiza, bracket, nucleo, planMensual, complementoPorEmp, complementosMensual, relojPorEmp, relojMensual, planMinimo, R, config: CFG };
+});
+
+
+// ============================================================
+// CONFIGURACIÓN COMERCIAL (editable sin tocar la interfaz)
+// ============================================================
+const SP = SoraPricingFactory(SORA_PRICING_CONFIG);
+const CFG = SORA_PRICING_CONFIG;
+const R = SP.R;
+const GO_MAX = CFG.soraGoHasta;                 // tope de Sora Go (configurable)
+const NOMBRE = CFG.nombresPlan;
+const rank = p => CFG.planes.indexOf(p);
+const DESC = CFG.descuentoAnual;
+const WA_VERA = 'https://wa.me/528120466247';
+const WA_LINDA = 'https://wa.me/5218182585217'; // Canal ONLINE de Linda, verificado en Dapta.
+const agenteActual = () => esGo() ? {nombre:'Vera',url:WA_VERA,frase:FRASE_VERA} : {nombre:'Linda',url:WA_LINDA,frase:'Hola Linda, armé mi Sora ideal'};
+const PRUEBA_URL = null;   // null → abre WhatsApp con Vera y el resumen (decisión 29-oct-2026). Vera manda la liga de crear cuenta.
+// Frase con la que arranca todo mensaje de la calculadora. Vera y el flow de Dapta la usan para reconocerlo: no cambiarla sin actualizar ambos.
+const FRASE_VERA = 'Hola Vera, armé mi Sora ideal';
+const DEMO_URL = 'https://sora.mx/enterprise/contacto';
+// HubSpot: llena portalId + formId para que el diagnóstico cree/actualice el contacto como un formulario.
+// El formId es de un formulario de HubSpot cuyos campos deben coincidir con los 'name' de abajo (enviarHubSpot).
+const HUBSPOT = { portalId: '7498451', formId: '3205ee1a-a09e-4f7a-80ea-7ee693da4515', region: 'na1' };
+// Campos opcionales del formulario de HubSpot. Solo se envían si tienen nombre (≠ null) Y hay formId.
+// Verificado 9-nov-2026: utm_source/medium/campaign/term/content EXISTEN como propiedades de CONTACTO.
+// Formulario publicado: cinco UTM + orden, referencia, detalle JSON y resumen.
+// Los IDs de anuncios viajan dentro del JSON y del resumen. La primera prioridad es de negocio.
+const HUBSPOT_CAMPOS = {
+  utm_source: 'utm_source', utm_medium: 'utm_medium', utm_campaign: 'utm_campaign', utm_term: 'utm_term', utm_content: 'utm_content',
+  utm_id: null, campaign_id: null, adset_id: null, ad_id: null, creative_id: null, creative_name: null, video_id: null, placement: null,
+  modulo_prioritario: null, orden_activacion: 'sora_go_orden_activacion', sora_ref: 'sora_go_ref', atribucion_json: 'sora_go_atribucion_json',
+};
+const PRUEBA_DIAS = 30;                                      // misma condición que calculadora-go v4
+
+// ---- calculadora1: contratación y pago con Stripe Checkout.
+// El importe que se cobra lo recalcula el backend (/api/checkout) con este mismo motor; la página solo lo muestra.
+const CHECKOUT_API = '/api/checkout';
+const IVA_TASA = 0.16;            // igual al Tax Rate de Stripe (STRIPE_TAX_RATE_IVA)
+const MODO_PRUEBA = true;         // muestra el aviso de tarjeta de prueba. En producción: false
+const ENVIAR_HUBSPOT = false;     // false en pruebas para no ensuciar el CRM con compras simuladas
+const ESTADO_KEY = 'sora_calc1_estado';
+
+// ---- Prioridad de activación. Valores internos EXACTOS de la propiedad de NEGOCIO sora_go_modulo_prioritario
+// (verificada en HubSpot 9-nov-2026; también existe 'por_definir' para cuando no hay confirmación).
+const PRIO_HS = { documentos: 'expediente', reloj: 'reloj_checador', recibos: 'recibos', vacaciones: 'vacaciones' };
+
+// ---- Atribución de campaña. Se guarda en sessionStorage: primer y último origen ETIQUETADO de la sesión.
+// Una visita sin etiquetas no borra lo conocido. Los IDs se guardan como texto, nunca como número.
+const ATTR_KEYS = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 'utm_id', 'campaign_id', 'adset_id', 'ad_id', 'creative_id', 'creative_name', 'video_id', 'placement'];
+const ATTR_STORE = 'sora_attr_v1';
+const RELOJ_DISPONIBLE = new Date('2026-11-15T00:00:00-06:00');
+const relojTag = () => (Date.now() < RELOJ_DISPONIBLE.getTime() ? 'Disponible 15 de noviembre' : '');
+
+
+// ---- Diagnóstico simplificado (The Algorithm): 2 interacciones. necesidad → módulo.
+const NECES = {
+  documentos: { t: 'Contratos y expedientes', d: 'Automatizar documentos y firmas laborales.' },
+  reloj: { t: 'Asistencia y jornada', d: 'Registrar asistencia y respaldar jornadas.' },
+  vacaciones: { t: 'Vacaciones', d: 'Automatizar solicitudes y autorizaciones.' },
+  recibos: { t: 'Recibos de nómina', d: 'Enviar y firmar recibos electrónicamente.' },
+};
+const VALOR = {
+  documentos: 'Genera, firma y organiza tus documentos laborales, incluso cuando tus colaboradores trabajan en distintas ubicaciones.',
+  reloj: 'Registra asistencia y respalda la jornada con firma del colaborador.',
+  vacaciones: 'Automatiza solicitudes y autorizaciones, y genera el documento de disfrute para firma electrónica.',
+  recibos: 'Envía y firma los recibos de nómina electrónicamente.',
+};
+const BENEF = {
+  documentos: ['Documentos generados con los datos del colaborador', 'Firma electrónica con verificación de identidad', 'Expedientes centralizados y evidencia auditable'],
+  reloj: ['Registro desde celular o kiosco', 'Revisión y firma electrónica de jornadas', 'Control de horas y trazabilidad de registros'],
+  vacaciones: ['Solicitudes desde el celular', 'Autorizaciones automatizadas', 'Documento de disfrute firmado e historial'],
+  recibos: ['Carga y envío de recibos', 'Firma electrónica desde el celular', 'Seguimiento de recibos pendientes'],
+};
+// Una pregunta operativa por necesidad (clave = módulo). Sin preguntas secundarias ni condicionales.
+const PREGUNTAS = [
+  { k: 'documentos', t: '¿Cómo gestionan actualmente los contratos y documentos laborales?',
+    ops: [['A', 'Todo en papel, con firmas físicas'], ['B', 'Firmamos en papel y después escaneamos'], ['C', 'Usamos una plataforma de firma electrónica'], ['D', 'Ya tenemos un proceso digital automatizado, con verificación de identidad']] },
+  { k: 'reloj', t: '¿Cómo registran actualmente las entradas y salidas?',
+    ops: [['A', 'No llevamos un registro formal'], ['B', 'Utilizamos listas, hojas de cálculo o registros manuales'], ['C', 'Tenemos un reloj checador tradicional'], ['D', 'Utilizamos una plataforma digital']] },
+  { k: 'recibos', t: '¿Cómo entregan actualmente los recibos de nómina?',
+    ops: [['A', 'Los imprimimos y entregamos físicamente'], ['B', 'Los enviamos por correo o WhatsApp'], ['C', 'Utilizamos un portal o sistema digital'], ['D', 'Ya tenemos automatizada su distribución y firma']] },
+  { k: 'vacaciones', t: '¿Cómo solicitan y autorizan vacaciones actualmente?',
+    ops: [['A', 'Por WhatsApp, correo o de palabra'], ['B', 'Utilizamos Excel o formatos en papel'], ['C', 'Tenemos un sistema, pero todavía hacemos seguimiento manual'], ['D', 'Todo el proceso está digitalizado']] },
+];
+
+// ---- Reglas de recomendación: respuesta → solución + nivel ('fuerte' se preselecciona, 'suave' es opcional).
+// Separadas de la interfaz para poder ajustarlas sin tocar el render.
+// 'fuerte' = solución principal: responde a una necesidad directa y se preselecciona.
+// 'suave'  = complementaria: ya resuelven lo básico; se muestra al final, sin preseleccionar ni sumar al precio.
+const nivel = (v, principales) => (v ? (principales.includes(v) ? 'fuerte' : 'suave') : null);
+const REGLAS = {
+  documentos: r => nivel(r.documentos, ['A', 'B']),      // papel / papel + escaneo → principal; firma electrónica o proceso automatizado → complementa
+  reloj:      r => nivel(r.reloj, ['A', 'B', 'C']),      // sin registro / Excel / reloj tradicional → principal; ya digital → complementa
+  recibos:    r => nivel(r.recibos, ['A', 'B']),         // impresos / correo o WhatsApp → principal; portal o ya automatizado → complementa
+  vacaciones: r => nivel(r.vacaciones, ['A', 'B', 'C']), // mensajes / Excel / sistema con seguimiento manual → principal; digitalizado → complementa
+};
+// Por qué Sora aporta aunque ya tengan una solución (complementarias). No asume reemplazar su plataforma.
+const COMPLEMENTA = {
+  documentos: 'Más allá de la firma electrónica, Sora permite configurar expedientes laborales, generar documentos mediante plantillas, solicitar documentación a los colaboradores y dar seguimiento a los requisitos pendientes.',
+  reloj: 'Además del registro, Sora permite revisar las horas trabajadas y que cada colaborador firme su jornada, con trazabilidad de cada corrección.',
+  recibos: 'Además de distribuir los recibos, Sora recaba la firma electrónica de cada colaborador y te muestra quién tiene recibos pendientes.',
+  vacaciones: 'Sora genera el documento de disfrute de vacaciones para firma electrónica del colaborador y mantiene saldos e historial en un solo lugar.',
+};
+
+// Diagnóstico comercial: sin indicadores de suficiencia legal.
+const RESPALDO = [];
+
+// Contenido comercial por solución: titular adaptable, situación "hoy" por respuesta, "con Sora" y 3 beneficios.
+const CARDS = {
+  documentos: {
+    nombre: 'Expedientes digitales',
+    titular: { def: 'Expedientes completos y listos para cualquier revisión, sin papel.', C: 'Suma expedientes, plantillas y seguimiento a tu firma electrónica.', D: 'Suma expedientes, plantillas y seguimiento a tu proceso digital.' },
+    hoy: { A: 'Todo es en papel: imprimes, firmas a mano y archivas.', B: 'Firmas en papel y después escaneas cada documento.', C: 'Firmas con una plataforma de firma electrónica.', D: 'Tienes un proceso digital automatizado con verificación de identidad.' },
+    conSora: ['Generación de documentos mediante plantillas y datos del colaborador', 'Firma electrónica desde el celular', 'Solicitud y carga de documentos por el colaborador', 'Expedientes digitales con seguimiento y auditoría documental'],
+    beneficios: ['Automatización documental', 'Firma electrónica', 'Organización y trazabilidad'],
+  },
+  reloj: {
+    nombre: 'Reloj checador',
+    titular: { def: 'Respaldo de cada jornada, no solo registro de horas.' },
+    hoy: { A: 'No llevas un registro formal de asistencia.', B: 'Registras con listas, hojas de cálculo o a mano.', C: 'Tienes un reloj checador tradicional.', D: 'Ya usas una plataforma digital de asistencia.' },
+    conSora: ['Acuerdo de registro firmado por el colaborador', 'Marcajes desde celular o kiosco con reconocimiento facial', 'Aclaraciones de retardos y correcciones con trazabilidad', 'Firma electrónica de la jornada'],
+    beneficios: ['Registro de asistencia', 'Firma de jornada', 'Trazabilidad de registros'],
+  },
+  recibos: {
+    nombre: 'Recibos de nómina',
+    titular: { def: 'Recibos entregados y firmados sin imprimir ni perseguir firmas.', D: 'Suma firma y seguimiento a la distribución de tus recibos.' },
+    hoy: { A: 'Imprimes y entregas los recibos físicamente.', B: 'Los envías por correo o WhatsApp.', C: 'Usas un portal o sistema digital.', D: 'Ya automatizas su distribución y firma.' },
+    conSora: ['Envío masivo de recibos a cada colaborador', 'Firma electrónica desde el celular', 'Seguimiento de recibos pendientes de firma'],
+    beneficios: ['Envío masivo', 'Firma desde el celular', 'Control de recibos pendientes'],
+  },
+  vacaciones: {
+    nombre: 'Vacaciones y ausencias',
+    titular: { def: 'Vacaciones claras para RH y para tu equipo, con respaldo documental.', D: 'Suma orden y documentación a tu proceso de vacaciones.' },
+    hoy: { A: 'Las vacaciones se piden por WhatsApp, correo o de palabra.', B: 'Llevas el control en Excel o formatos en papel.', C: 'Tienes un sistema, pero el seguimiento es manual.', D: 'Ya tienes el proceso digitalizado.' },
+    conSora: ['Consulta de días disponibles y solicitudes digitales', 'Aprobación y seguimiento de vacaciones', 'Generación y firma electrónica del documento de disfrute de vacaciones', 'Control de saldos e historial'],
+    beneficios: ['Menos seguimiento manual', 'Solicitudes organizadas', 'Mayor visibilidad'],
+  },
+};
+// Cumplimiento laboral con IA: recomendación (no pregunta) cuando el usuario mostró interés.
+const CUMPL = {
+  nombre: 'Cumplimiento laboral con IA',
+  titular: 'Descubre qué obligaciones laborales y documentos le corresponden a tu empresa.',
+  texto: 'Sora analiza las características de tu empresa para identificar obligaciones laborales y requisitos documentales, y te ayuda a configurar los expedientes y documentos que necesitas.',
+  beneficios: ['Identifica obligaciones aplicables', 'Propone los documentos necesarios', 'Configura tus expedientes'],
+};
+
+// Qué incluye cada solución (de la hoja de funcionalidades v4)
+const FUNCS = {
+  documentos: ['Expediente integral del empleado', 'Firma electrónica avanzada', 'Constancia NOM-151', 'Dashboard de auditoría', 'Plantillas y campos rellenables', 'Envío masivo y programado', 'Match biométrico INE + selfie', 'Solicitud y carga de documentos por el colaborador', 'Validación de CSF con IA', 'Agentes de IA laboral', 'Gestión de ausencias', 'Gestión de demandas y bajas'],
+  recibos: ['Carga, envío y firma de recibos', 'XML / PDF', 'Notificaciones de firmado', 'Logotipo de empresa', 'Auditoría por puesto, grupo o centro', 'Gestión de ausencias'],
+  reloj: ['Reconocimiento facial', 'App móvil y modo kiosco', 'Geocercas por sede', 'Acuerdo de registro firmado', 'Horas ordinarias y extra', 'Firma electrónica de jornadas', 'Correcciones con trazabilidad', 'Exportación para nómina'],
+  vacaciones: ['Solicitud vía app', 'Flujo de autorizadores', 'Esquemas de ley y personalizados', 'Documento de disfrute con firma electrónica'],
+};
+const DESCS = { documentos: 'Expedientes, contratos y documentos laborales con firma electrónica.', recibos: 'Envío y firma electrónica de recibos de nómina.', reloj: 'Registro de asistencia y jornada con firma del colaborador.', vacaciones: 'Solicitudes, autorizaciones, saldos y documento de disfrute firmado.' };
+const BASE = ['documentos', 'recibos', 'reloj'];
+const ORDEN = ['documentos', 'reloj', 'vacaciones', 'recibos'];   // Recibos siempre al final
+const RESP_TXT = {
+  documentos: { A: 'papel y firmas físicas', B: 'firma en papel y escaneo', C: 'plataforma de firma electrónica', D: 'proceso digital con verificación de identidad' },
+  reloj: { A: 'sin registro formal', B: 'listas / Excel / manual', C: 'reloj tradicional', D: 'plataforma digital' },
+  recibos: { A: 'impresos y físicos', B: 'correo / WhatsApp', C: 'portal / sistema digital', D: 'distribución y firma automatizadas' },
+  vacaciones: { A: 'WhatsApp / correo / palabra', B: 'Excel / papel', C: 'sistema con seguimiento manual', D: 'digitalizado' },
+};
+
+// ============================================================
+// ESTADO
+// ============================================================
+let PASOS = ['needs', 'emp', ...PREGUNTAS.map(q => q.k), 'resultado', 'calc'];
+const MODS = ['documentos', 'reloj', 'recibos', 'vacaciones'];
+// Tarjetas "¿Qué te gustaría mejorar?" (clave = módulo): [clave, icono, nombre]
+const NEED4 = [['documentos', 'doc', 'Contratos y expedientes'], ['reloj', 'clock', 'Reloj checador y jornadas'], ['recibos', 'send', 'Recibos de nómina'], ['vacaciones', 'cal', 'Vacaciones y ausencias']];
+const S = { paso: 0, emp: null, lead: {}, captura: false, enviando: false, enviado: false, resp: {}, sel: null, plan: 'estandar', bill: 'mes', abierto: {}, ley: {}, aviso: null, need: {}, needMods: null, explorar: false, cumpl: false,
+  prio: { orden: [], ok: false, primero: null, ordenOk: false, ordenConfirmado: [], edit: true, aviso: '', falta: false } };   // ok = la persona confirmó por dónde empezar
+
+// ---- Atribución: captura, limpieza y memoria de la sesión
+const ATTR = (function () {
+  const limpia = v => String(v == null ? '' : v).replace(/[\u0000-\u001F\u007F]/g, ' ').trim().slice(0, 150);
+  const lee = search => {
+    const o = {};
+    try { const q = new URLSearchParams(search || ''); ATTR_KEYS.forEach(k => { const v = limpia(q.get(k)); if (v && !/[{}]/.test(v)) o[k] = v; }); } catch (e) {}
+    return o;
+  };
+  // Si la calculadora está en un iframe del mismo dominio, también lee las etiquetas de la página que la contiene.
+  let actual = lee(location.search);
+  if (!Object.keys(actual).length) { try { if (window.parent && window.parent !== window) actual = lee(window.parent.location.search); } catch (e) {} }
+  let mem = {};
+  try { mem = JSON.parse(sessionStorage.getItem(ATTR_STORE) || '{}') || {}; } catch (e) { mem = {}; }
+  const ahora = new Date().toISOString();
+  if (Object.keys(actual).length) {
+    const reg = { ...actual, pagina: limpia(location.pathname), capturado: ahora };
+    if (!mem.primero) mem.primero = reg;
+    mem.ultimo = reg;
+  }
+  if (!mem.ref || !/^SG-[0-9a-f-]{32,36}$/i.test(mem.ref)) {
+    const c=window.crypto;
+    if(c && c.randomUUID) mem.ref='SG-'+c.randomUUID();
+    else if(c && c.getRandomValues) mem.ref='SG-'+Array.from(c.getRandomValues(new Uint8Array(16)),x=>x.toString(16).padStart(2,'0')).join('');
+    else mem.ref='';
+  } // Referencia de correlación; solo enlaza registros si el receptor también la guarda.
+  try { sessionStorage.setItem(ATTR_STORE, JSON.stringify(mem)); } catch (e) {}
+  const soloParams = r => { const o = {}; if (r) ATTR_KEYS.forEach(k => { if (r[k]) o[k] = r[k]; }); return o; };
+  return {
+    primero: mem.primero || null, ultimo: mem.ultimo || null, ref: mem.ref,
+    hay: () => !!(mem.ultimo || mem.primero),
+    params: () => soloParams(mem.ultimo || mem.primero),   // el último etiquetado manda en la conversión
+  };
+})();
+// Precarga de necesidades: desde el Home (?necesidades=...) o campaña (?sol=...). Mapea al modelo de 4 módulos + interés de cumplimiento.
+(function(){ try {
+  const q = new URLSearchParams(location.search);
+  const map = { contratos:'documentos', expedientes:'documentos', documentos:'documentos', firma:'documentos', reloj:'reloj', checador:'reloj', asistencia:'reloj', jornada:'reloj', recibos:'recibos', nomina:'recibos', 'nómina':'recibos', vacaciones:'vacaciones' };
+  const apply = x => { x = x.trim(); if (x === 'cumplimiento') { S.cumpl = true; return; } const k = map[x]; if (k) S.need[k] = true; };
+  (q.get('necesidades') || '').toLowerCase().split(',').forEach(apply);
+  (q.get('sol') || q.get('solucion') || '').toLowerCase().split(',').forEach(apply);
+} catch (e) {} })();
+// Módulos derivados de las necesidades y reconstrucción de la lista de preguntas (una por necesidad)
+function selectedMods(){ const m = {}; for (const k in S.need) if (S.need[k]) m[k] = true; return m; }
+function rebuildPasos(){
+  const mods = selectedMods(); const any = Object.keys(mods).length > 0;
+  const qs = any ? MODS.filter(k => mods[k]) : MODS.slice();   // "explorar" / sin selección → todas
+  PASOS = ['needs', 'emp', ...qs, 'resultado', 'calc'];
+}
+
+// ---- Analítica: dataLayer (GTM/GA4) + evento del navegador. Un evento por acción del brief.
+function track(evento, datos = {}) {
+  const d = { evento, pantalla: PASOS[S.paso], empleados: S.emp, sora_ref: ATTR.ref, ...datos };
+  try { (window.dataLayer = window.dataLayer || []).push({ event: 'sora_diagnostico', ...d }); } catch (e) {}
+  window.dispatchEvent(new CustomEvent('sora:evento', { detail: d }));
+}
+
+const fmt = x => '$' + R(x).toLocaleString('es-MX');
+const f2 = x => '$' + x.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const porEmp = v => { const x = v / S.emp; return Math.abs(x - Math.round(x)) < 1e-9 ? '$' + Math.round(x).toLocaleString('es-MX') : f2(x); };
+const esGo = () => S.emp <= GO_MAX;
+const anual = () => S.bill === 'anu';
+const nMods = s => (s.documentos ? 1 : 0) + (s.recibos ? 1 : 0);
+const nBase = s => BASE.filter(k => s[k]).length;
+const nSel = () => ORDEN.filter(k => S.sel[k]).length;
+
+// ============================================================
+// LÓGICA
+// ============================================================
+function recomendaciones() { const o = {}; for (const k of ORDEN) { const n = REGLAS[k](S.resp); if (n) o[k] = n; } return o; }
+// Preselección: solo las 'fuerte'. Si no hay base, Expedientes entra como ancla (el motor lo exige).
+function selInicial() {
+  const rec = recomendaciones(); const s = { documentos: false, recibos: false, reloj: false, vacaciones: false };
+  for (const k in rec) if (rec[k] === 'fuerte') s[k] = true;   // solo las principales; las complementarias se agregan a mano
+  return s;   // sin ancla automática: si no hay Expedientes, Recibos o Reloj, el resultado pide agregar uno para ver precio
+
+}
+// Orden dinámico: primero lo más manual (respuesta A), después B, C, D; empate → orden base.
+const porRelevancia = ks => ks.slice().sort((a, b) => (S.resp[a] || 'Z').localeCompare(S.resp[b] || 'Z') || ORDEN.indexOf(a) - ORDEN.indexOf(b));
+function respaldo() { return RESPALDO.map(x => ({ ...x, ok: x.ok(S.resp) })); }
+
+const comps = s => (s.vacaciones ? ['vacaciones'] : []);
+const input = (plan, s) => ({ empleados: S.emp, plan, documentos: s.documentos, recibos: s.recibos, reloj: s.reloj, complementos: ['ausencias', ...comps(s)] });
+function minimo(s = S.sel) {
+  const m = SP.planMinimo({ complementos: comps(s), demandas: false, recibos: s.recibos, documentos: s.documentos }).plan;
+  return rank(m) < rank('estandar') ? 'estandar' : m;
+}
+const planAplicado = (s = S.sel) => (rank(S.plan) < rank(minimo(s)) ? minimo(s) : S.plan);
+function cotiza(plan, s = S.sel) {
+  const r = SP.cotiza(input(plan, s));
+  return { total: r.totalMensual, anualMes: r.anualPorMes, anualAnio: r.anualTotal12, piso: r.pisoAplicado };
+}
+const importe = c => (anual() ? c.anualMes : c.total);
+function lineas(plan) {
+  const L = [], s = S.sel;
+  const m1 = SP.planMensual(plan, S.emp, 1).total;
+  if (s.documentos) L.push({ k: 'documentos', v: m1 });
+  if (s.recibos) L.push({ k: 'recibos', v: s.documentos ? SP.planMensual(plan, S.emp, 2).total - m1 : m1 });
+  if (s.reloj) L.push({ k: 'reloj', v: SP.relojMensual(S.emp, nMods(s) > 0, plan).total });
+  if (s.vacaciones) L.push({ k: 'vacaciones', v: SP.complementosMensual(['vacaciones'], S.emp).total });
+  return L;
+}
+function delta(k) {
+  const s2 = { ...S.sel, [k]: !S.sel[k] };
+  return cotiza(planAplicado(s2), s2).total - cotiza(planAplicado()).total;
+}
+function incluidos(plan) {
+  const L = [];
+  if (S.sel.documentos || S.sel.recibos) L.push('Gestión de ausencias');
+  if (S.sel.documentos) L.push('Gestión de demandas');
+  L.push('Asistente de IA laboral');
+  if (plan === 'pro') L.push('Integraciones API y SSO');
+  return L;
+}
+
+// ============================================================
+// ACCIONES
+// ============================================================
+function go(n) { S.paso = Math.max(0, Math.min(PASOS.length - 1, n)); window.scrollTo({ top: 0, behavior: 'smooth' }); render(); track('pantalla'); }
+function atras() { go(S.paso - 1); }
+function empContinuar() {
+  const el = document.getElementById('empnum');
+  const n = parseInt(el && el.value, 10);
+  if (n >= 1) { S.emp = Math.min(200000, n); track('tamano_empresa', { empleados: S.emp }); avanzar(); }
+  else { const h = document.getElementById('emp-hint'); if (h) h.textContent = 'Escribe cuántos colaboradores tiene tu empresa para continuar.'; if (el) el.focus(); }
+}
+function setEmp(v) {
+  const n = parseInt(v, 10);
+  S.emp = n >= 1 ? Math.min(200000, n) : null;
+  const h = document.getElementById('emp-hint'); if (h && S.emp) h.textContent = '';
+  renderSoloEnt();
+}
+function responder(k, v, q) {
+  S.resp[k] = v; track('respuesta', { pregunta: k, respuesta: v });
+  if (q && q.conds) for (const c of Object.values(q.conds)) delete S.resp[c.k];
+  if (q && q.conds && q.conds[v]) { render(); return; }
+  setTimeout(avanzar, 220);
+}
+function avanzar() { if (PASOS[S.paso + 1] === 'resultado') verResultado(); else go(S.paso + 1); }
+function responderCond(k, v) { S.resp[k] = v; track('respuesta', { pregunta: k, respuesta: v }); setTimeout(avanzar, 220); }
+function setTexto(k, v) { S.resp[k] = v.trim(); }
+function condTexto(k) { if (S.resp[k]) track('respuesta', { pregunta: k, respuesta: S.resp[k] }); avanzar(); }
+function verResultado() { S.sel = selInicial(); syncPrio(); track('resultado', { respuestas: S.resp, recomendadas: Object.keys(recomendaciones()) }); go(PASOS.indexOf('resultado')); }
+function irCalc() { if (!esGo() || !nBase(S.sel)) return; track('ver_plan', { soluciones: ORDEN.filter(k => S.sel[k]) }); go(PASOS.indexOf('calc')); }
+function toggle(k) {
+  if (PASOS[S.paso] === 'calc' && BASE.includes(k) && S.sel[k] && nBase(S.sel) === 1) { S.aviso = k; render(); S.aviso = null; return; }   // la calculadora necesita una solución base
+  S.sel[k] = !S.sel[k];
+  track(S.sel[k] ? 'agregar_solucion' : 'quitar_solucion', { solucion: k, soluciones: ORDEN.filter(x => S.sel[x]) });
+  syncPrio(true);
+  render();
+}
+
+// ============================================================
+// PRIORIDAD: ¿qué quieres resolver primero? La confirma la persona; nunca se deduce
+// de las tarjetas, las respuestas, el precio ni las recomendaciones.
+// ============================================================
+const nomMod = k => CARDS[k].nombre;
+const selOrden = () => ORDEN.filter(k => S.sel && S.sel[k]);
+// Mantiene el orden alineado con las soluciones elegidas. Las nuevas van al final.
+// Si se quita la que iba primero, la prioridad vuelve a pedirse.
+function invalidarOrden() { S.prio.ordenOk=false; S.prio.ordenConfirmado=[]; }
+function camposPrioridad() {
+  const P=S.prio, sel=selOrden();
+  const primeroOk=!!(P.ok && P.primero && P.orden[0]===P.primero && sel.includes(P.primero));
+  const completo=P.orden.length===sel.length && new Set(P.orden).size===sel.length && P.orden.every(k=>sel.includes(k)&&PRIO_HS[k]);
+  const igual=Array.isArray(P.ordenConfirmado)&&P.ordenConfirmado.length===P.orden.length&&P.orden.every((k,i)=>k===P.ordenConfirmado[i]);
+  const ordenOk=!!(primeroOk && completo && igual && P.ordenOk);
+  return {sora_go_modulo_prioritario:primeroOk?PRIO_HS[P.primero]:'por_definir', prioridad_confirmada:primeroOk,
+    orden_confirmado:ordenOk, orden_activacion:ordenOk?P.orden.map(k=>PRIO_HS[k]):[],
+    modulo_secundario:ordenOk&&P.orden.length>1?PRIO_HS[P.orden[1]]:null};
+}
+function syncPrio(porUsuario) {
+  const P=S.prio, sel=selOrden(), anterior=P.orden.slice(), primero=P.primero;
+  P.orden=P.orden.filter(k=>sel.includes(k));
+  const nuevas=sel.filter(k=>!P.orden.includes(k));
+  P.orden.push(...nuevas);
+  const cambio=anterior.length!==P.orden.length || anterior.some((k,i)=>k!==P.orden[i]);
+  if(cambio) invalidarOrden();
+  if(P.ok && (!primero || P.orden[0]!==primero || !sel.includes(primero))) {
+    P.ok=false; P.primero=null; P.edit=true;
+    P.aviso=primero?'Cambió la solución por la que ibas a empezar. Elige de nuevo tu primera prioridad.':'';
+    track('prioridad_reiniciada');
+  } else if(nuevas.length && porUsuario && P.ok) {
+    P.edit=true; P.aviso='Agregamos una solución al final. Confirma el orden completo si quieres conservarlo como prioridad.';
+  }
+}
+function prioTrack(evento) { track(evento,camposPrioridad()); }
+function elegirPrimero(k) {
+  const P=S.prio;
+  if(!selOrden().includes(k)) return;
+  P.orden=[k,...P.orden.filter(x=>x!==k)];
+  P.primero=k; P.ok=true; P.falta=false; P.aviso='';
+  invalidarOrden();
+  P.edit=P.orden.length>1;
+  P.anuncio=`Empezarás con ${nomMod(k)}.`;
+  prioTrack('prioridad_confirmada'); render();
+}
+function moverPrio(k, d) {
+  const o = S.prio.orden, i = o.indexOf(k), j = i + d;
+  if (i < 0 || j < 0 || j >= o.length) return;
+  [o[i], o[j]] = [o[j], o[i]];
+  invalidarOrden();
+  if(o[0]!==S.prio.primero) { S.prio.ok=false; S.prio.primero=null; }
+  S.prio.aviso = ''; S.prio.anuncio = `${nomMod(k)} ahora va en el lugar ${j + 1}.`;
+  prioTrack('prioridad_orden');
+  render();
+  const b = document.querySelector(`[data-mv="${k}${d}"]`) || document.querySelector(`[data-mv="${k}${-d}"]`);
+  if (b) b.focus();
+}
+function listoPrio() {
+  const P=S.prio, sel=selOrden();
+  if(!camposPrioridad().prioridad_confirmada || P.orden.length!==sel.length || new Set(P.orden).size!==sel.length || !P.orden.every(k=>sel.includes(k))) return;
+  P.ordenOk=true; P.ordenConfirmado=P.orden.slice(); P.edit=false; P.aviso='';
+  prioTrack('orden_confirmado'); render();
+}
+function cambiarPrio() {
+  S.prio.edit = true;
+  render();
+  requestAnimationFrame(() => document.getElementById('prio')?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
+}
+// Arrastrar (mouse y dedo) desde el asa. Mueve el DOM mientras arrastra y al soltar guarda el orden.
+function prioDrag(ev) {
+  const h = ev.currentTarget, li = h.closest('.prio-it'), ul = li && li.parentElement;
+  if (!ul) return;
+  ev.preventDefault();
+  li.classList.add('drag');
+  // Los listeners van en document: al mover el <li> en el DOM se pierde la captura del puntero.
+  const mover = e => {
+    if (e.pointerId !== ev.pointerId) return;
+    e.preventDefault();
+    for (const it of ul.children) {
+      if (it === li) continue;
+      const r = it.getBoundingClientRect(), mid = r.top + r.height / 2;
+      const liDespues = it.compareDocumentPosition(li) & Node.DOCUMENT_POSITION_FOLLOWING;
+      if (liDespues && e.clientY < mid) { ul.insertBefore(li, it); break; }
+      if (!liDespues && e.clientY > mid) { ul.insertBefore(li, it.nextSibling); break; }
+    }
+  };
+  const fin = e => {
+    if (e && e.pointerId !== ev.pointerId) return;
+    document.removeEventListener('pointermove', mover); document.removeEventListener('pointerup', fin); document.removeEventListener('pointercancel', fin);
+    const nuevo = [...ul.children].map(x => x.dataset.k);
+    if (nuevo.join() !== S.prio.orden.join()) {
+      S.prio.orden = nuevo; invalidarOrden(); if(nuevo[0]!==S.prio.primero) { S.prio.ok=false; S.prio.primero=null; } S.prio.aviso = ''; S.prio.anuncio = `Empezarás con ${nomMod(nuevo[0])}.`;
+      prioTrack('prioridad_orden');
+    }
+    render();
+  };
+  document.addEventListener('pointermove', mover, { passive: false }); document.addEventListener('pointerup', fin); document.addEventListener('pointercancel', fin);
+}
+function setPlan(id) { if (rank(id) < rank(minimo())) return; S.plan = id; track('plan', { plan: id }); render(); }
+function setBill(b) { S.bill = b; track('facturacion', { facturacion: b }); render(); }
+function setEmpCalc(v) {
+  S.emp = Math.max(1, Math.min(200000, parseInt(v) || 1)); track('cambio_empleados');
+  const n = document.getElementById('empnum'), enfocado = n === document.activeElement, pos = n ? n.selectionStart : null;
+  render();
+  const m = document.getElementById('empnum');
+  if (m && enfocado) { m.focus(); try { m.type = 'text'; m.setSelectionRange(pos, pos); m.type = 'number'; } catch (e) {} }
+}
+function verInc(k) { S.abierto[k] = !S.abierto[k]; render(); }
+function verLey(k) { S.ley[k] = !S.ley[k]; if (S.ley[k]) track('ver_ley', { solucion: k }); render(); }
+
+function resumenTexto() {
+  const plan = esGo() ? planAplicado() : null, c = esGo() ? cotiza(plan) : null, r = S.resp;
+  const base = [
+    `Empleados: ${S.emp} (${esGo() ? 'Sora Go' : 'Sora Enterprise'})`,
+    `Soluciones: ${ORDEN.filter(k => S.sel[k]).map(k => CARDS[k].nombre).join(', ')}`,
+  ];
+  const o = S.prio.orden;
+  if (camposPrioridad().prioridad_confirmada) base.push(`Módulo prioritario: ${nomMod(S.prio.primero)}`);
+  if (camposPrioridad().orden_confirmado) base.push('Orden de activación confirmado: Sí', `Orden de activación: ${o.map((k, i) => `${i + 1}. ${nomMod(k)}`).join(' > ')}`);
+  if (!camposPrioridad().prioridad_confirmada) base.push('Módulo prioritario: por definir');
+  if (esGo()) base.push(`Plan: ${NOMBRE[plan]}`, `Facturación: ${anual() ? 'Anual' : 'Mensual'}`, anual() ? `Inversión: ${fmt(c.anualAnio)} al año` : `Inversión: ${fmt(c.total)} al mes`, 'Precios en MXN sin IVA');
+  base.push('', 'Cómo trabaja hoy:');
+  if (r.documentos) base.push(`- Contratos y documentos: ${RESP_TXT.documentos[r.documentos]}`);
+  if (r.reloj) base.push(`- Asistencia y jornada: ${RESP_TXT.reloj[r.reloj]}`);
+  if (r.recibos) base.push(`- Recibos de nómina: ${RESP_TXT.recibos[r.recibos]}`);
+  if (r.vacaciones) base.push(`- Vacaciones: ${RESP_TXT.vacaciones[r.vacaciones]}`);
+  if (S.cumpl) base.push('- Interés: cumplimiento laboral con IA');
+  return base.join('\n');
+}
+// Datos del diagnóstico listos para HubSpot (no se envían aún; viajan en el evento sora:conversion).
+function diagnosticoPayload() {
+  const r = S.resp, plan = esGo() ? planAplicado() : null, c = esGo() ? cotiza(plan) : null;
+  return {
+    colaboradores: S.emp, segmento: esGo() ? 'Sora Go' : 'Sora Enterprise',
+    necesidades: Object.keys(S.need).filter(k => S.need[k]),
+    interes_cumplimiento: !!S.cumpl,
+    proceso_documentos: r.documentos ? RESP_TXT.documentos[r.documentos] : null,
+    proceso_reloj: r.reloj ? RESP_TXT.reloj[r.reloj] : null,
+    proceso_recibos: r.recibos ? RESP_TXT.recibos[r.recibos] : null,
+    proceso_vacaciones: r.vacaciones ? RESP_TXT.vacaciones[r.vacaciones] : null,
+    soluciones_recomendadas: Object.keys(recomendaciones()),
+    modulos_seleccionados: ORDEN.filter(k => S.sel[k]),
+    plan: esGo() ? NOMBRE[plan] : null, precio_mensual: esGo() ? c.total : null, facturacion: esGo() ? (anual() ? 'anual' : 'mensual') : null,
+    version_pricing: CFG.version,
+    // Prioridad: valores internos de la propiedad de NEGOCIO sora_go_modulo_prioritario
+    ...camposPrioridad(), // El segundo lugar solo existe como prioridad si el orden completo fue confirmado.
+    prioridad_origen: !S.prio.ok ? null : (S.prio.auto ? 'unica_solucion' : 'elegida'),   // única = no se preguntó porque no había opción
+    atribucion: { primer_origen: ATTR.primero, ultimo_origen: ATTR.ultimo, sora_ref: ATTR.ref },
+  };
+}
+// Bloque visible y editable al final del mensaje a Vera. Solo lleva lo que vino en la URL.
+function refBloque() {
+  const p = ATTR.params();
+  if (!Object.keys(p).length) return '';
+  const q = new URLSearchParams();
+  ATTR_KEYS.forEach(k => { if (p[k]) q.set(k, p[k]); });
+  q.set('sora_ref', ATTR.ref);
+  return `Referencia de origen (Sora):\n[SORA_REF_V1]\n${q.toString()}\n[/SORA_REF_V1]`;
+}
+// Envía el lead + diagnóstico a HubSpot vía Forms Submissions API (crea/actualiza contacto).
+async function enviarHubSpot(lead) {
+  if (!ENVIAR_HUBSPOT || !HUBSPOT.portalId || !HUBSPOT.formId) return { skipped: true };
+  const d = diagnosticoPayload();
+  const fields = [
+    ['email', lead.email], ['firstname', lead.nombre], ['company', lead.empresa],
+    ['sora_ideal_resumen', resumenTexto() + (refBloque() ? '\n\n' + refBloque() : '')],   // el teléfono llega por WhatsApp a Vera
+  ].filter(([, v]) => v !== undefined && v !== null && v !== '').map(([name, value]) => ({ name, value }));
+  // Atribución y prioridad: solo los campos con nombre en HUBSPOT_CAMPOS (los demás aún no tienen propiedad).
+  const extra = { ...ATTR.params(), modulo_prioritario: d.sora_go_modulo_prioritario, orden_activacion: d.orden_activacion.join('>'), sora_ref: ATTR.ref, atribucion_json: Object.keys(ATTR.params()).length ? JSON.stringify(d.atribucion) : '' };
+  Object.entries(HUBSPOT_CAMPOS).forEach(([k, name]) => { if (name && extra[k]) fields.push({ name, value: String(extra[k]) }); });
+  // hutk: cookie de seguimiento de HubSpot; permite que HubSpot ligue la visita y su fuente original al contacto.
+  const hutk = (document.cookie.match(/(?:^|;\s*)hubspotutk=([^;]+)/) || [])[1];
+  const body = { fields, context: { pageUri: location.href, pageName: 'Diagnóstico Sora Go', ...(hutk ? { hutk } : {}) } };
+  const url = `https://api.hsforms.com/submissions/v3/integration/submit/${HUBSPOT.portalId}/${HUBSPOT.formId}`;
+  try { const r = await fetch(url, { method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }); return { ok: r.ok, status: r.status }; }
+  catch (e) { return { ok: false, error: String(e) }; }
+}
+function abrirCaptura() { S.captura = true; S.enviando = false; modalOn(true); render(); track('abrir_captura'); }
+function cerrarCaptura() { S.captura = false; modalOn(false); render(); }
+function setLead(k, v) { S.lead[k] = v.trim(); }
+async function enviarLead() {
+  if(selOrden().length && !camposPrioridad().prioridad_confirmada) { S.captura=false;S.prio.falta=true;cambiarPrio();return; }
+  if (!S.lead.email || !/.+@.+\..+/.test(S.lead.email)) { S.leadErr = true; render(); document.getElementById('lead-e')?.focus(); return; }
+  S.leadErr = false;
+  if (esGo()) return pagar();   // calculadora1: Sora Go contrata y paga en Stripe; Enterprise sigue con Linda
+  const base = { plan: esGo() ? NOMBRE[planAplicado()] : null, soluciones: ORDEN.filter(k => S.sel[k]), total: esGo() ? cotiza(planAplicado()).total : null };
+  const diag = diagnosticoPayload();
+  // 1) Guardar desde la página ANTES de abrir WhatsApp (keepalive deja terminar el envío aunque cambie de pestaña).
+  const envio = enviarHubSpot(S.lead);
+  window.dispatchEvent(new CustomEvent('sora:conversion', { detail: { ...base, lead: S.lead, diagnostico: diag, atribucion: diag.atribucion, resumen: resumenTexto() } }));
+  track(esGo() ? 'comenzar_prueba' : 'agendar_demo', { ...base, modulo_prioritario: diag.sora_go_modulo_prioritario, orden_activacion: diag.orden_activacion, ...ATTR.params() });
+  S.captura = false; S.enviado = true; modalOn(false); render();
+  // 2) Abrir WhatsApp dentro del mismo clic: si espera la respuesta de HubSpot, Safari y Chrome móvil bloquean la ventana.
+  abrirDestino();
+  const res = await envio;
+  window.dispatchEvent(new CustomEvent('sora:hubspot', { detail: res }));
+  track('hubspot_envio', { hubspot_ok: !!res.ok, hubspot_omitido: !!res.skipped });
+}
+// Botón "Habla con Vera": deja el diagnóstico y la atribución en dataLayer/evento antes de abrir el enlace.
+function waDudas() {
+  const diag = diagnosticoPayload();
+  window.dispatchEvent(new CustomEvent('sora:whatsapp_dudas', { detail: { diagnostico: diag, atribucion: diag.atribucion, resumen: resumenTexto() } }));
+  track('whatsapp_'+agenteActual().nombre.toLowerCase(), { modulo_prioritario: diag.sora_go_modulo_prioritario, orden_activacion: diag.orden_activacion, ...ATTR.params() });
+}
+// ============================================================
+// CONTRATAR Y PAGAR (Stripe Checkout)
+// ============================================================
+const fmtC = c => '$' + (c / 100).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+// Lo que se cobra hoy: mensual = total del mes; anual = pago anual (−15%). IVA 16% encima, en centavos.
+function cobroHoy() {
+  const plan = planAplicado(), c = cotiza(plan);
+  const sub = Math.round((anual() ? c.anualAnio : c.total) * 100);
+  const iva = Math.round(sub * IVA_TASA);
+  return { plan, c, sub, iva, total: sub + iva };
+}
+// Desglose por solución que se manda a Stripe. Anual: cada línea ×12 con −15%, en pesos enteros; el residuo de
+// redondeo va a la línea más grande para que sume exacto el pago anual del motor (misma regla que lib/cotizar.js).
+function lineasCobro() {
+  const plan = planAplicado(), L = lineas(plan), c = cotiza(plan);
+  if (!anual()) return L.map(l => ({ k: l.k, v: l.v }));
+  const f = 12 * (1 - DESC);
+  const out = L.map(l => ({ k: l.k, v: Math.round(l.v * f) }));
+  const dif = c.anualAnio - out.reduce((x, l) => x + l.v, 0);
+  if (dif && out.length) { const i = out.reduce((bi, l, j) => (l.v > out[bi].v ? j : bi), 0); out[i].v += dif; }
+  return out;
+}
+function cobroBox() {
+  const k = cobroHoy();
+  return `<div class="cobro" aria-label="Total a cobrar hoy"><div class="lab">Total a cobrar hoy · ${anual() ? 'pago anual' : 'primer mes'}</div>
+    <div class="cb-l"><span>Subtotal</span><b>${fmtC(k.sub)}</b></div>
+    <div class="cb-l"><span>IVA (16%)</span><b>${fmtC(k.iva)}</b></div>
+    <div class="cb-t"><span>Total</span><b>${fmtC(k.total)} MXN</b></div>
+    <div class="cb-n">Se renueva automáticamente cada ${anual() ? 'año' : 'mes'} por el mismo monto mientras no cambies tu plan.</div></div>`;
+}
+const LOCK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>';
+function guardarEstado() {
+  try { sessionStorage.setItem(ESTADO_KEY, JSON.stringify({ emp: S.emp, sel: S.sel, plan: S.plan, bill: S.bill, resp: S.resp, need: S.need, cumpl: S.cumpl, explorar: S.explorar, prio: S.prio, lead: S.lead, t: Date.now() })); } catch (e) {}
+}
+// Al volver de Stripe sin pagar (cancelado.html → ?retomar=1), regresa a la calculadora con la misma configuración.
+function restaurarEstado() {
+  try {
+    if (!new URLSearchParams(location.search).has('retomar')) return false;
+    const g = JSON.parse(sessionStorage.getItem(ESTADO_KEY) || 'null');
+    if (!g || !g.sel || !(g.emp >= 1) || Date.now() - g.t > 864e5) return false;
+    Object.assign(S, { emp: g.emp, sel: g.sel, plan: g.plan || 'estandar', bill: g.bill === 'anu' ? 'anu' : 'mes', resp: g.resp || {}, need: g.need || {}, cumpl: !!g.cumpl, explorar: !!g.explorar, lead: g.lead || {} });
+    if (g.prio) S.prio = { ...S.prio, ...g.prio, falta: false, aviso: '', anuncio: '' };
+    rebuildPasos();
+    S.paso = PASOS.indexOf(esGo() ? 'calc' : 'resultado');
+    return true;
+  } catch (e) { return false; }
+}
+async function pagar() {
+  if (S.enviando) return;
+  const k = cobroHoy();
+  const body = {
+    seleccion: { empleados: S.emp, plan: k.plan, documentos: !!S.sel.documentos, recibos: !!S.sel.recibos, reloj: !!S.sel.reloj, vacaciones: !!S.sel.vacaciones, facturacion: anual() ? 'anual' : 'mensual' },
+    versionPricing: CFG.version,
+    totalEsperadoCentavos: k.total,
+    lead: { nombre: S.lead.nombre || '', email: S.lead.email || '', empresa: S.lead.empresa || '' },
+    prioridad: camposPrioridad(),
+    soraRef: ATTR.ref,
+    atribucion: ATTR.params(),
+  };
+  S.enviando = true; S.payErr = ''; render();
+  guardarEstado();
+  track('contratar_pagar', { plan: NOMBRE[k.plan], facturacion: body.seleccion.facturacion, subtotal_centavos: k.sub, total_centavos: k.total, soluciones: ORDEN.filter(x => S.sel[x]), ...ATTR.params() });
+  enviarHubSpot(S.lead);   // no hace nada mientras ENVIAR_HUBSPOT = false
+  try {
+    const r = await fetch(CHECKOUT_API, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok || !d.url) throw new Error(d.error || 'No pudimos abrir el pago. Intenta de nuevo en un momento.');
+    track('checkout_redirigido', { total_centavos: d.totalCentavos });
+    location.href = d.url;   // página segura de Stripe (checkout.stripe.com)
+  } catch (e) {
+    S.enviando = false; S.payErr = e.message || 'No pudimos abrir el pago.'; render();
+    track('checkout_error', { error: S.payErr });
+  }
+}
+// Si regresan con el botón "atrás" desde Stripe, la página puede venir de caché con el botón bloqueado.
+window.addEventListener('pageshow', e => { if (e.persisted && S.enviando) { S.enviando = false; render(); } });
+
+function abrirDestino() {
+  const agente=agenteActual();
+  const L = S.lead, datos = [L.nombre && `Nombre: ${L.nombre}`, L.empresa && `Empresa: ${L.empresa}`, L.email && `Correo: ${L.email}`].filter(Boolean).join('\n');
+  const ref = refBloque();
+  const texto = (esGo() ? `${agente.frase} y quiero comenzar mi prueba gratis de ${PRUEBA_DIAS} días.\n\n` : `${agente.frase} y quiero una demo de Sora Enterprise.\n\n`) + (datos ? datos + '\n' : '') + resumenTexto() + (ref ? '\n\n' + ref : '');
+  window.open((esGo() && PRUEBA_URL) || `${agente.url}?text=${encodeURIComponent(texto)}`, '_blank', 'noopener');
+}
+// Antes de la captura, la persona debe haber confirmado por dónde empezar.
+function convertir() {
+  if (selOrden().length && !camposPrioridad().prioridad_confirmada) { S.prio.falta = true; track('prioridad_pendiente'); cambiarPrio(); return; }
+  abrirCaptura();
+}
+// Link a la página de contacto Enterprise conservando contexto (no crea formulario nuevo).
+function demoURL() {
+  const q = new URLSearchParams();
+  if (S.emp) q.set('empleados', S.emp);
+  const sols = ORDEN.filter(k => S.sel && S.sel[k]); if (sols.length) q.set('soluciones', sols.join(','));
+  const p = ATTR.params(); ATTR_KEYS.forEach(k => { if (p[k]) q.set(k, p[k]); });
+  try { const src = new URLSearchParams(location.search); ['sol','solucion'].forEach(k => { const v = src.get(k); if (v) q.set(k, v); }); } catch (e) {}
+  const qs = q.toString();
+  return DEMO_URL + (qs ? (DEMO_URL.includes('?') ? '&' : '?') + qs : '');
+}
+// La referencia va antes de "Mi duda es:" para que lo que escriba la persona quede al final del mensaje.
+function waLink() { const ref=refBloque(),agente=agenteActual(); return `${agente.url}?text=${encodeURIComponent(agente.frase + ' y tengo dudas.\n\n' + (S.sel ? resumenTexto() : `Empleados: ${S.emp || '—'}`) + (ref ? '\n\n' + ref : '') + '\n\nMi duda es: ')}`; }
+
+// ============================================================
+// RENDER
+// ============================================================
+const app = document.getElementById('app');
+const flotantes = document.getElementById('flotantes');
+const prog = (i, n) => `<div class="prog"><button class="back" onclick="atras()">← Regresar</button><div class="bar-p"><i style="width:${(i / n) * 100}%"></i></div><span>${i} de ${n}</span></div>`;
+
+function render() {
+  const paso = PASOS[S.paso];
+  document.body.classList.toggle('calc-on', paso === 'calc');
+  if (paso !== 'calc') { flotantes.innerHTML = ''; if (obsDesglose) obsDesglose.disconnect(); }
+  if (paso === 'needs') return renderNeeds();
+  if (paso === 'emp') return renderEmp();
+  if (paso === 'resultado') return renderResultado();
+  if (paso === 'calc') return renderCalc();
+  return renderPregunta(PREGUNTAS.find(q => q.k === paso), S.paso);
+}
+
+function entBox() { return ''; }
+function renderSoloEnt() {}
+
+function renderNeeds() {
+  const n = S.need;
+  app.innerHTML = `<div class="screen start">
+    <div class="dark start-h">
+      <span class="eyebrow">Descubre tu Sora ideal</span>
+      <h1>Descubre una forma más simple de trabajar.</h1>
+      <p class="sub">Selecciona los procesos que te gustaría mejorar y conoce cómo Sora puede ayudarte.</p>
+      <div class="diag-chip"><i></i>Personalizado · Sin registro · 2 minutos</div>
+    </div>
+    <div class="start-b">
+      <h2 class="needs-sub">¿Qué te gustaría mejorar en tu empresa?</h2>
+      <div class="needs">${NEED4.map(([k, ic, t]) => `<button class="need ${n[k] ? 'on' : ''}" onclick="toggleNeed('${k}')" aria-pressed="${!!n[k]}">
+        <span class="need-ico">${ICO[ic]}</span>
+        <span class="need-b"><span class="need-n">${t}</span></span>
+        <span class="need-chk">${n[k] ? '✓' : ''}</span>
+      </button>`).join('')}</div>
+      <button class="need need-explore ${S.explorar ? 'on' : ''}" onclick="toggleExplorar()" aria-pressed="${!!S.explorar}">
+        <span class="need-ico">${ICO.q}</span>
+        <span class="need-b"><span class="need-n">No estoy seguro, quiero explorar las soluciones</span></span>
+        <span class="need-chk">${S.explorar ? '✓' : ''}</span>
+      </button>
+      <div class="next"><button class="btn" onclick="needsContinuar()">Continuar →</button></div>
+    </div>
+  </div>`;
+}
+function toggleNeed(k) { S.explorar = false; S.need[k] = !S.need[k]; render(); }
+function toggleExplorar() { S.explorar = !S.explorar; if (S.explorar) S.need = {}; render(); }
+function needsContinuar() { S.needMods = selectedMods(); rebuildPasos(); track('necesidades', { necesidades: Object.keys(S.need).filter(k => S.need[k]), explorar: !!S.explorar, cumplimiento: !!S.cumpl }); go(1); }
+function renderEmp() {
+  app.innerHTML = `<div class="screen"><div class="prog"><button class="back" onclick="atras()">← Regresar</button></div><div class="q">
+    <span class="eyebrow">¿Cómo trabajas actualmente?</span>
+    <h1>¿Cuántos colaboradores tiene tu empresa?</h1>
+    <p class="sub">Con esto te mostramos cómo funcionaría Sora para tu equipo y, si aplica, cuánto costaría.</p>
+    <div class="emp-in"><input type="number" id="empnum" min="1" step="1" inputmode="numeric" placeholder="35" value="${S.emp || ''}" oninput="setEmp(this.value)" onkeydown="if(event.key==='Enter'){empContinuar()}" aria-label="Número de colaboradores" autofocus><label>colaboradores</label></div>
+    <div class="next"><button class="btn" id="btn-emp" onclick="empContinuar()">Comenzar diagnóstico →</button></div>
+    <p class="emp-hint" id="emp-hint"></p>
+  </div></div>`;
+}
+
+function renderPregunta(q, idx) {
+  const v = S.resp[q.k];
+  const QS = PASOS.slice(PASOS.indexOf('emp') + 1, PASOS.indexOf('resultado'));
+  const pos = QS.indexOf(q.k) + 1, total = QS.length;
+  const cd = q.conds && q.conds[v];
+  let sub = '';
+  if (cd && cd.tipo === 'texto') {
+    sub = `<div class="subq"><h2>${cd.t}</h2><div class="txt-row"><input type="text" id="cond-txt" placeholder="${cd.ph}" value="${S.resp[cd.k] || ''}" oninput="setTexto('${cd.k}',this.value)" onkeydown="if(event.key==='Enter'){condTexto('${cd.k}')}"><button class="chip-b ${S.resp[cd.k] === cd.chip[0] ? 'on' : ''}" onclick="S.resp['${cd.k}']='${cd.chip[0]}';render()">${cd.chip[1]}</button></div><div class="next"><button class="btn" onclick="condTexto('${cd.k}')">Continuar →</button></div></div>`;
+  } else if (cd) {
+    sub = `<div class="subq"><h2>${cd.t}</h2><div class="ops ${cd.ops[0][2] ? 'ico' : ''}">${cd.ops.map(([id, t, ic]) => `<button class="op ${S.resp[cd.k] === id ? 'on' : ''}" onclick="responderCond('${cd.k}','${id}')">${ic ? `<span class="op-ico">${ICO[ic]}</span>` : ''}<span>${t}</span></button>`).join('')}</div>${cd.omitir ? `<button class="omit" onclick="responderCond('${cd.k}','${cd.omitir[0]}')">${cd.omitir[1]}</button>` : ''}</div>`;
+  }
+  app.innerHTML = `<div class="screen">${prog(pos, total)}<div class="q">
+    <span class="eyebrow">¿Cómo trabajas actualmente?</span>
+    <h1>${q.t}</h1>${q.sub ? `<p class="sub">${q.sub}</p>` : ''}
+    <div class="ops">${q.ops.map(([id, t]) => `<button class="op ${v === id ? 'on' : ''}" onclick="responder('${q.k}','${id}',PREGUNTAS[${PREGUNTAS.indexOf(q)}])"><span class="rd"></span><span>${t}</span></button>`).join('')}</div>
+    ${sub}
+  </div></div>`;
+}
+
+// ---- Pantalla de resultado · v3 visual. Flujos "hoy" según respuesta; "con Sora" fijo por solución.
+const ICO = {
+  doc: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M8 13h8M8 17h5"/></svg>',
+  print: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V3h12v6M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="7"/></svg>',
+  pen: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>',
+  folder: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>',
+  phone: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>',
+  chat: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 21l1.9-4.6A8 8 0 1 1 21 12z"/></svg>',
+  grid: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></svg>',
+  id: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><circle cx="8" cy="12" r="2.5"/><path d="M14 10h5M14 14h5"/></svg>',
+  shield: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l8 3v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5z"/><path d="M9 12l2 2 4-4"/></svg>',
+  clock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+  face: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3"/><circle cx="9" cy="10" r="1"/><circle cx="15" cy="10" r="1"/><path d="M9 15c1.5 1.5 4.5 1.5 6 0"/></svg>',
+  check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>',
+  x: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+  q: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.4-1 .9-1 1.7M12 17h.01"/></svg>',
+  scan: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M3 12h18"/></svg>',
+  copy: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>',
+  send: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4z"/></svg>',
+  up: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M6 10l6-6 6 6M4 20h16"/></svg>',
+  cal: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>',
+  user: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>',
+  eye: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>',
+  pin: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s7-6 7-12a7 7 0 0 0-14 0c0 6 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg>',
+  gear: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3h.1a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8v.1a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>',
+};
+// ---- Resultado comercial: comparativo "Hoy -> Con Sora", 3 beneficios, sin indicadores legales.
+const MODICO = { documentos: 'doc', reloj: 'clock', recibos: 'send', vacaciones: 'cal' };
+
+// ---- Mini-interfaces animadas: pequeñas vistas de la plataforma, no ilustraciones.
+// Color con significado: azul = acción en curso, verde = completado, morado = pendiente, amarillo = advertencia.
+const UI_H = (t, tag) => `<div class="ui-h"><span class="ui-logo">s</span><span class="ui-t">${t}</span><span class="ui-tag">${tag}</span></div>`;
+const SW3 = (a, b, c) => `<span class="sw sw3"><span>${a}</span><span>${b}</span><span>${c}</span></span>`;
+const SW2 = (a, b) => `<span class="sw sw2"><span>${a}</span><span>${b}</span></span>`;
+// Paso que se completa: círculo pendiente → palomita verde (n = momento: 1, 2 o 3)
+const CK = n => `<span class="ck"><span class="ring"></span><span class="tick ap${n}"></span></span>`;
+const ST = (cls, t) => `<span class="st ${cls}">${t}</span>`;
+const DEMO = {
+  // Plantillas → Generación → Firma → Carga de documentos → Expediente → Auditoría (ciclo de 10 s en dos pasos)
+  documentos: () => `<div class="ui" aria-hidden="true">${UI_H('Expedientes', 'Ana López · Operaciones')}<div class="ui-b">
+    <div class="fsteps">${['Plantillas', 'Generación', 'Firma', 'Carga', 'Expediente', 'Auditoría'].map((t, i) => `<span class="fs fs${i + 1}">${t}</span>`).join('')}</div>
+    <div class="stack">
+      <div class="pane pA"><div class="ui-card"><span class="ui-di"></span><div class="grow"><b>Contrato individual de trabajo</b><small>Desde la plantilla, con los datos de Ana</small></div>
+        <span class="sw ex3"><span>${ST('a', 'Generando')}</span><span>${ST('p', 'Por firmar')}</span><span>${ST('g', 'Firmado')}</span></span></div></div>
+      <div class="pane pB"><div class="ui-card"><span class="ui-up">${ICO.up}</span><div class="grow"><b>Comprobante de domicilio</b><small>Solicitado a Ana desde su acceso</small><div class="ui-bar up"><i></i></div></div>
+        <span class="sw ey3"><span>${ST('p', 'Solicitado')}</span><span>${ST('a', 'Cargando')}</span><span>${ST('g', 'Recibido')}</span></span></div></div>
+    </div>
+    <div class="ui-prog"><div class="pl"><span>Requisitos del expediente</span><b><span class="sw ez3"><span>4 de 6</span><span>5 de 6</span><span>6 de 6</span></span></b></div><div class="ui-bar g"><i class="exfill"></i></div></div>
+    <div class="ui-row"><span class="ck"><span class="ring"></span><span class="tick exaud"></span></span><span class="nm">Auditoría documental · sin pendientes</span></div>
+  </div></div>`,
+  // Consentimiento → Marcajes → Aclaraciones → Firma de jornada (ciclo de 10 s en tres pasos)
+  reloj: () => `<div class="ui" aria-hidden="true">${UI_H('Reloj checador', 'Luis Pérez · Sucursal Centro')}<div class="ui-b">
+    <div class="fsteps">${['Consentimiento', 'Marcajes', 'Aclaraciones', 'Firma de jornada'].map((t, i) => `<span class="fs rs${i + 1}">${t}</span>`).join('')}</div>
+    <div class="stack">
+      <div class="pane r1"><div class="ui-card"><span class="ui-di"></span><div class="grow"><b>Acuerdo de registro de jornada</b><small>Lo firma una vez, desde su celular</small></div>
+        <span class="sw ra2"><span>${ST('p', 'Por firmar')}</span><span>${ST('g', 'Firmado')}</span></span></div></div>
+      <div class="pane r2"><div class="ui-card"><span class="ui-face"><span class="scan"></span></span><div class="grow"><small>Entrada · lunes</small><span class="ui-big">08:58</span></div>
+        <span class="sw rb2"><span>${ST('a', 'Validando rostro')}</span><span>${ST('g', 'Registrada')}</span></span></div></div>
+      <div class="pane r3"><div class="ui-card"><span class="ui-av">M</span><div class="grow"><b>Martes · entrada 09:10</b><small>Luis agregó una aclaración</small></div>
+        <span class="sw rc2"><span>${ST('w', 'Retardo 10 min')}</span><span>${ST('a', 'Aclarado')}</span></span></div></div>
+    </div>
+    <div class="ui-row"><span class="nm"><b>Jornada de la semana</b> · 45 h</span><span class="sw rd2"><span>${ST('p', 'Por firmar')}</span><span>${ST('g', 'Firmada')}</span></span></div>
+  </div></div>`,
+  recibos: () => `<div class="ui" aria-hidden="true">${UI_H('Recibos de nómina', '2ª quincena')}<div class="ui-b">
+    <div class="ui-prog"><div class="pl"><span>Enviados</span><b>48 de 48</b></div><div class="ui-bar"><i style="--to:100%"></i></div></div>
+    <div class="ui-prog"><div class="pl"><span>Firmados</span><b>${SW3('12 de 48', '31 de 48', '48 de 48')}</b></div><div class="ui-bar g"><i class="fill" style="--from:25%;--to:100%"></i></div></div>
+    <div class="ui-row"><span class="ui-av">AL</span><span class="nm">Ana López</span>${ST('g', 'Firmado')}</div>
+    <div class="ui-row"><span class="ui-av">LP</span><span class="nm">Luis Pérez</span>${SW2(ST('p', 'Pendiente'), ST('g', 'Firmado'))}</div>
+    <div class="ui-row"><span class="ui-av">CR</span><span class="nm">Carla Ruiz</span>${SW3(ST('a', 'Enviado'), ST('p', 'Pendiente'), ST('g', 'Firmado'))}</div>
+  </div></div>`,
+  // Solicitud → aprobación → documento de disfrute generado → firma del colaborador → saldo actualizado
+  vacaciones: () => `<div class="ui" aria-hidden="true">${UI_H('Vacaciones', 'Luis Pérez · Almacén')}<div class="ui-b">
+    <div class="ui-row"><span class="nm">Días disponibles</span><b><span class="sw vs2"><span>12 días</span><span>9 días</span></span></b></div>
+    <div class="ui-card"><span class="ui-av">LP</span><div class="grow"><b>Solicitud · 3 días</b><small>12 al 14 de noviembre</small></div>
+      <span class="sw va3"><span>${ST('p', 'Pendiente')}</span><span>${ST('a', 'En revisión')}</span><span>${ST('g', 'Aprobada')}</span></span></div>
+    <div class="ui-card"><span class="ui-di"></span><div class="grow"><b>Documento de disfrute de vacaciones</b><small>Se genera al aprobar la solicitud</small></div>
+      <span class="sw vb3"><span>${ST('n', 'En espera')}</span><span>${ST('p', 'Por firmar')}</span><span>${ST('g', 'Firmado')}</span></span></div>
+    <div class="ui-row"><span class="ck"><span class="ring"></span><span class="tick vaok"></span></span><span class="nm">Firmado por Luis y guardado en su historial</span></div>
+  </div></div>`,
+  cumpl: () => `<div class="ui" aria-hidden="true">${UI_H('Cumplimiento laboral', 'Asistente de IA')}<div class="ui-b">
+    <div class="ui-card"><div class="grow"><b>Documentos sugeridos para tu empresa</b><small>Según el tamaño y la operación que registras</small></div>${SW2(ST('a', 'Generando'), ST('g', 'Listo'))}</div>
+    <div class="ui-row">${CK(1)}<span class="nm">Contrato individual de trabajo</span></div>
+    <div class="ui-row">${CK(2)}<span class="nm">Aviso de privacidad para colaboradores</span></div>
+    <div class="ui-row">${CK(3)}<span class="nm">Acuerdo de registro de jornada</span></div>
+  </div></div>`,
+};
+
+function renderResultado() {
+  const esG = esGo();
+  if(!esG) syncPrio();
+  const rec = recomendaciones();                                            // módulos respondidos (= necesidades elegidas)
+  const princ = porRelevancia(ORDEN.filter(k => rec[k] === 'fuerte'));      // responden a una necesidad directa
+  const comp = porRelevancia(ORDEN.filter(k => rec[k] === 'suave'));        // ya resuelven lo básico: complementan
+  const otras = ORDEN.filter(k => !rec[k]);                                 // no elegidas -> "otras soluciones"
+  const okPrecio = nBase(S.sel) > 0;                                       // el motor necesita Expedientes, Recibos o Reloj
+  const btnAdd = (k, cls) => `<button class="${cls} ${S.sel[k] ? 'on' : ''}" onclick="toggle('${k}')" aria-pressed="${!!S.sel[k]}">${S.sel[k] ? '✓ En tu Sora' : '+ Agregar a mi Sora'}</button>`;
+
+  const card = k => {
+    const C = CARDS[k], ans = S.resp[k] || 'A';
+    const titular = C.titular[ans] || C.titular.def;
+    const on = S.sel[k];   // la respuesta (S.resp) sigue decidiendo prioridad y frase; ya no se repite en pantalla
+    return `<div class="vc ${on ? 'on' : ''}">
+      <div class="vc-main">
+        <div class="vc-top">
+          <div class="vc-ico">${ICO[MODICO[k]]}</div>
+          <div class="vc-head"><div class="vc-name">${C.nombre} <span class="vc-badge">Recomendado</span></div><div class="vc-msg">${titular}</div></div>
+          ${esG ? `<button class="vc-add ${on ? 'on' : ''}" onclick="toggle('${k}')">${on ? '✓ Incluido' : '+ Agregar'}</button>` : ''}
+        </div>
+        <ul class="vc-list">${C.conSora.map(x => `<li>${x}</li>`).join('')}</ul>
+        <button class="vc-demo-tg" onclick="verInc('demo_${k}')">${S.abierto['demo_' + k] ? 'Ocultar vista previa ↑' : 'Ver cómo funciona ↓'}</button>
+      </div>
+      <div class="vc-demo ${S.abierto['demo_' + k] ? '' : 'm-hide'}">${DEMO[k]()}</div>
+    </div>`;
+  };
+
+  // Complementaria: explica qué suma Sora sin asumir que reemplaza su plataforma. No se preselecciona.
+  const compCard = k => {
+    const C = CARDS[k], ans = S.resp[k] || 'D', ver = S.abierto['demo_' + k];
+    return `<div class="vc comp ${S.sel[k] ? 'on' : ''}">
+      <div class="vc-top">
+        <div class="vc-ico">${ICO[MODICO[k]]}</div>
+        <div class="vc-head"><div class="vc-name">${C.nombre} <span class="vc-badge opt">Complementa</span></div></div>
+      </div>
+      <div class="vc-pain">${COMPLEMENTA[k]}</div>
+      <div class="comp-actions">${btnAdd(k, 'vc-add')}<button class="vc-link" onclick="verInc('demo_${k}')">${ver ? 'Ocultar ↑' : 'Ver cómo funciona ↓'}</button></div>
+      ${ver ? `<div class="comp-demo">${DEMO[k]()}</div>` : ''}
+    </div>`;
+  };
+
+  const cumplCard = S.cumpl ? `<div class="vc cumpl">
+      <div class="vc-main">
+        <div class="vc-top"><div class="vc-ico">${ICO.shield}</div><div class="vc-head"><div class="vc-name">${CUMPL.nombre} <span class="vc-badge">Para ti</span></div><div class="vc-msg">${CUMPL.titular}</div></div></div>
+        <ul class="vc-list">${CUMPL.beneficios.map(x => `<li>${x}</li>`).join('')}</ul>
+        <button class="vc-demo-tg" onclick="verInc('demo_cumpl')">${S.abierto.demo_cumpl ? 'Ocultar vista previa ↑' : 'Ver cómo funciona ↓'}</button>
+      </div>
+      <div class="vc-demo ${S.abierto.demo_cumpl ? '' : 'm-hide'}">${DEMO.cumpl()}</div>
+    </div>` : '';
+
+  const mini = k => `<div class="vc-mini">
+    <div class="vc-mini-ico">${ICO[MODICO[k]]}</div>
+    <div class="vc-mini-b"><div class="vc-mini-n">${CARDS[k].nombre}</div><div class="vc-mini-d">${DESCS[k]}</div></div>
+    ${btnAdd(k, 'vc-mini-add')}
+  </div>`;
+
+  // Tu Sora ideal = la selección actual (principales + lo que agregue). Es la misma selección que usa la calculadora.
+  const ideal = porRelevancia(ORDEN.filter(k => S.sel[k]));
+  const cta = esG
+    ? `<button class="btn light" onclick="irCalc()" ${okPrecio ? '' : 'disabled'}>Ver precio →</button>`
+    : `<button class="btn light" onclick="convertir()">Hablar con Linda →</button>`;
+  // Sin importes en el resultado: el precio se descubre en la calculadora. Solo se avisa si falta una solución base.
+  const nota = esG && !okPrecio ? 'Agrega Expedientes, Recibos o Reloj checador para ver tu precio.' : '';
+
+  const hay = princ.length || comp.length || S.cumpl;
+  const cuerpo = hay
+    ? `${princ.length || S.cumpl ? `<div class="vcards">${princ.map(card).join('')}${cumplCard}</div>` : ''}
+       ${comp.length ? `<div class="comp-h">También puede ayudarte</div><p class="comp-sub">Ya resuelves lo básico en estos procesos. Esto es lo que Sora puede sumar, si te interesa.</p><div class="vcards">${comp.map(compCard).join('')}</div>` : ''}`
+    : `<div class="okbox"><b>Cuéntanos qué quieres mejorar.</b> Regresa y elige al menos una necesidad para ver cómo Sora puede ayudarte.</div>`;
+  const bloque = hay ? `<section class="dark ideal" aria-label="Tu Sora ideal">
+      <div class="ideal-g">
+        <div>
+          <h2>Así quedaría tu Sora ideal</h2>
+          <div class="ideal-list">${ideal.length || S.cumpl ? '' : '<span class="vacio">Aún no agregas soluciones</span>'}${ideal.map(k => `<span><i></i>${CARDS[k].nombre}</span>`).join('')}${S.cumpl ? `<span><i></i>${CUMPL.nombre}</span>` : ''}</div>
+        </div>
+        <div class="ideal-cta">${cta}${nota ? `<small>${nota}</small>` : ''}</div>
+      </div>
+    </section>` : '';
+
+  app.innerHTML = `<div class="screen"><div class="prog wide"><button class="back" onclick="atras()">← Regresar</button></div><div class="res">
+    <div class="dark res-h">
+      <span class="eyebrow">Descubre tu Sora ideal</span>
+      <h1>Así puedes simplificar tu operación con Sora.</h1>
+      <p class="sub">Conoce cómo Sora puede ayudarte a transformar los procesos que seleccionaste.</p>
+    </div>
+    ${cuerpo}
+    ${hay && otras.length ? `<div class="otras-h">Descubre qué más puedes hacer con Sora</div><div class="otras">${otras.map(mini).join('')}</div>` : ''}
+    ${!esG ? prioCard() : ''}
+    ${bloque}
+  </div></div>`;
+  if(!esG) flotantes.innerHTML = S.captura ? modalCaptura() : '';
+}
+
+// Tarjeta "¿Qué quieres resolver primero?". Solo muestra las soluciones elegidas.
+const GRIP = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="9" cy="6" r="1.6"/><circle cx="15" cy="6" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="18" r="1.6"/><circle cx="15" cy="18" r="1.6"/></svg>';
+function prioCard() {
+  const P = S.prio, o = P.orden;
+  if (!o.length) return '';
+  const aviso = P.aviso ? `<div class="prio-aviso">${P.aviso}</div>` : (P.falta && !P.ok ? '<div class="prio-aviso">Antes de contratar, elige por dónde quieres empezar.</div>' : '');
+  const live = `<p class="sr" aria-live="polite">${P.anuncio || ''}</p>`;
+  let cuerpo;
+  if (!P.ok && o.length === 1) {
+    cuerpo = `<div class="prio-ok"><div class="txt">Empezarás con <b>${nomMod(o[0])}</b>.</div><button class="btn sec" onclick="elegirPrimero('${o[0]}')">Sí, empezar con ${nomMod(o[0])}</button></div>`;
+  } else if (!P.ok) {
+    // Sin orden previo: la persona toca la que quiere resolver primero.
+    cuerpo = `<p class="prio-sub">Toca la que quieres resolver primero. Después puedes ordenar las demás.</p>
+      <div class="prio-pick">${ORDEN.filter(k => o.includes(k)).map(k => `<button onclick="elegirPrimero('${k}')"><span class="need-ico">${ICO[MODICO[k]]}</span>${nomMod(k)}</button>`).join('')}</div>`;
+  } else if (P.edit && o.length > 1) {
+    cuerpo = `<p class="prio-sub">Arrastra o usa las flechas. La primera es por donde empezamos.</p>
+      <ul class="prio-list">${o.map((k, i) => `<li class="prio-it ${i === 0 ? 'first' : ''}" data-k="${k}">
+        <button class="prio-h" onpointerdown="prioDrag(event)" aria-hidden="true" tabindex="-1">${GRIP}</button>
+        <span class="prio-n">${i + 1}</span>
+        <span class="prio-nm">${nomMod(k)}${i === 0 ? '<small>Empezamos aquí</small>' : ''}</span>
+        <button class="prio-mv" data-mv="${k}-1" onclick="moverPrio('${k}',-1)" ${i === 0 ? 'disabled' : ''} aria-label="Subir ${nomMod(k)}">↑</button>
+        <button class="prio-mv" data-mv="${k}1" onclick="moverPrio('${k}',1)" ${i === o.length - 1 ? 'disabled' : ''} aria-label="Bajar ${nomMod(k)}">↓</button>
+      </li>`).join('')}</ul>
+      <div class="prio-acts"><button class="btn sec" onclick="listoPrio()">Confirmar este orden</button></div>`;
+  } else {
+    cuerpo = `<div class="prio-ok"><div class="txt">Primero empezaremos con <b>${nomMod(o[0])}</b>.${o.length > 1 ? `<small>Después: ${o.slice(1).map(nomMod).join(' > ')}</small>` : ''}</div><button class="btn sec" onclick="cambiarPrio()">Cambiar</button></div>`;
+  }
+  return `<section class="card prio ${P.falta && !P.ok ? 'falta' : ''}" id="prio"><div class="sh"><h2>¿Qué quieres resolver primero?</h2><p>Así sabemos por dónde arrancar tu implementación</p></div>${aviso}${cuerpo}${live}</section>`;
+}
+function prioResumen() {
+  const P = S.prio;
+  if (!P.orden.length) return '';
+  return P.ok
+    ? `<div class="tb-prio">Primero empezaremos con <b>${nomMod(P.orden[0])}</b><button onclick="cambiarPrio()">Cambiar</button></div>`
+    : `<div class="tb-prio no">Falta elegir por dónde empezar<button onclick="cambiarPrio()">Elegir</button></div>`;
+}
+
+function renderCalc() {
+  if (!esGo()) { go(PASOS.indexOf('resultado')); return; }   // Enterprise: sin precios, nunca calculadora
+  syncPrio();
+  const plan = planAplicado(), min = minimo(), c = cotiza(plan), lin = lineas(plan), rec = recomendaciones();
+  const est = cotiza(rank('estandar') < rank(min) ? min : 'estandar'), pro = cotiza('pro');
+  const dif = importe(pro) - importe(est);
+  // Orden estable por relevancia del diagnóstico (principales, complementarias, resto); no salta al marcar o desmarcar.
+  const nv = k => ({ fuerte: 0, suave: 1 }[rec[k]] ?? 2);
+  const items = porRelevancia(ORDEN).sort((a, b) => nv(a) - nv(b)).map(k => {
+    const on = S.sel[k]; let main, sub;
+    if (on) { const l = lin.find(x => x.k === k); if (l.v === 0) { main = 'Incluido'; sub = 'en el mínimo del plan'; } else { main = fmt(l.v) + '<small>/mes</small>'; sub = porEmp(l.v) + ' por empleado'; } }
+    else { const d = delta(k); main = (d >= 0 ? '+' : '−') + fmt(Math.abs(d)) + '<small>/mes</small>'; sub = d === 0 ? 'cubierto por el mínimo del plan' : (d >= 0 ? '+' : '−') + porEmp(Math.abs(d)) + ' por empleado'; }
+    return `<div class="fitem ${on ? 'on' : ''}" onclick="toggle('${k}')" role="checkbox" aria-checked="${on}" tabindex="0" onkeydown="if(event.key===' '||event.key==='Enter'){event.preventDefault();toggle('${k}')}">
+      <span class="chk">${on ? '✓' : ''}</span>
+      <div class="fbody"><div class="fn">${CARDS[k].nombre}${rec[k] ? `<span class="rec">${rec[k] === 'fuerte' ? 'Recomendado' : 'Complementa'}</span>` : ''}${k === 'reloj' && relojTag() ? `<span class="tagn">${relojTag()}</span>` : ''}</div>
+        <div class="fd">${DESCS[k]}</div>
+        <button class="ver-inc" onclick="event.stopPropagation();verInc('${k}')">${S.abierto[k] ? 'Ocultar ↑' : 'Qué incluye ↓'}</button>
+        ${S.abierto[k] ? `<div class="finc" onclick="event.stopPropagation()"><ul>${FUNCS[k].map(x => `<li>${x}</li>`).join('')}</ul></div>` : ''}
+        ${S.aviso === k ? '<div class="fnote">Necesitas al menos Expedientes, Recibos o Reloj checador</div>' : ''}
+      </div>
+      <div class="fp ${on ? '' : 'add'}"><span class="fpm">${main}</span><span class="fps">${sub}</span></div>
+    </div>`;
+  }).join('');
+  const planCard = (id, tag) => {
+    const disp = rank(id) >= rank(min), pc = id === 'pro' ? pro : est, isSel = id === plan;
+    return `<div class="plan ${isSel ? 'sel' : ''} ${disp ? '' : 'na'}" onclick="setPlan('${id}')"><div class="pname">${NOMBRE[id]}</div><div class="ptag">${tag}</div><div class="price">${fmt(importe(pc))}<small> MXN /mes</small></div><div class="peremp">${anual() ? `Pago anual de ${fmt(pc.anualAnio)}` : porEmp(pc.total) + ' por empleado al mes'}</div></div>`;
+  };
+  const ahorro = c.total * 12 - c.anualAnio;
+  app.innerHTML = `<div class="screen"><div class="prog full"><button class="back" onclick="atras()">← Regresar al diagnóstico</button></div><div class="calc">
+    <span class="eyebrow">Descubre tu Sora ideal</span>
+    <h1>Así quedaría tu Sora ideal.</h1>
+    <p class="sub">Tus soluciones recomendadas ya están seleccionadas. Agrega, quita o cambia el número de colaboradores: el precio se actualiza al momento.</p>
+    <div class="layout"><div class="config">
+      <section class="card"><div class="sh"><h2>Colaboradores</h2><p>Pagas por empleado activo</p></div>
+        <div class="emp-row"><input type="number" id="empnum" min="1" step="1" inputmode="numeric" value="${S.emp}" oninput="setEmpCalc(this.value)" onfocus="this.select()" aria-label="Colaboradores"><div class="seg">${esGo() ? `<b>Sora Go</b> · hasta ${GO_MAX} colaboradores` : `<b>Sora Enterprise</b> · 100 o más`}</div></div>
+      </section>
+      <section class="card"><div class="sh"><h2>Tus soluciones</h2><p>Precio mensual según tu combinación</p></div><div class="list">${items}</div></section>
+      ${prioCard()}
+      <section class="card"><div class="sh"><h2>Elige tu plan</h2></div>
+        <div class="plans">${planCard('estandar', 'Todo lo que seleccionaste, listo para operar.')}${planCard('pro', 'Lo mismo, más integraciones API/SSO, administradores ilimitados y más consultas de IA.')}</div>
+        <div class="dif">${dif > 0 ? `Por <b>${fmt(dif)}</b> adicionales al mes obtienes PRO.` : ''}</div>
+      </section>
+    </div>
+    <aside class="totbox" aria-label="Tu inversión">
+      <div class="tb-scroll">
+      <div class="tb-head">
+        <h2>Tu inversión</h2>
+        <div class="tb-total">${fmt(importe(c))}<small> MXN /mes</small></div>
+        <div class="tb-per">${anual() ? `Equivale a un pago anual de <b>${fmt(c.anualAnio)}</b> · ${f2(c.anualMes / S.emp)} por empleado al mes` : porEmp(c.total) + ' por empleado al mes'} · Plan ${NOMBRE[plan]}</div>
+        <div class="tb-save">${anual() ? `Ahorras ${fmt(ahorro)} al año con pago anual` : `Con pago anual: ${fmt(c.anualMes)} al mes (ahorras ${fmt(ahorro)} al año)`}</div>
+        <div class="tb-iva">Precios en MXN sin IVA</div>
+      </div>
+      <div class="tb-body">
+        <div><div class="lab">Facturación</div><div class="bill"><button class="${anual() ? '' : 'on'}" onclick="setBill('mes')">Mensual</button><button class="${anual() ? 'on' : ''}" onclick="setBill('anu')">Anual <span class="save-tag">−15%</span></button></div></div>
+        <div><div class="lab">Desglose · mensual</div>${lin.map(l => `<div class="tl"><span class="ln">${CARDS[l.k].nombre}<small>${l.v ? porEmp(l.v) + ' por empleado' : 'en el mínimo del plan'}</small></span><b class="${l.v ? '' : 'inc0'}">${l.v ? fmt(l.v) : 'Incluido'}</b></div>`).join('')}<div class="tb-flag">${c.piso ? `Incluye el mínimo mensual del plan ${NOMBRE[plan]} (${fmt(CFG.piso[plan])}).` : ''}</div></div>
+        <div><div class="lab">Incluido sin costo</div><div class="tb-inc">${incluidos(plan).map(x => `<span>${x}</span>`).join('')}</div></div>
+        ${esGo() ? `${cobroBox()}${prioResumen()}<button class="btn big" onclick="convertir()">Contratar y pagar</button><div class="tb-trial"><span class="pay-lock">${LOCK}Pago seguro con tarjeta a través de Stripe</span></div>
+          <div class="wa"><span>¿Tienes dudas?</span><a class="btn-wa" href="${waLink()}" target="_blank" rel="noopener" onclick="waDudas()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.2-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8s-.4-.1-.6.1-.7.8-.8 1-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.3-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.9 11.9 0 0 0 4.6 4 5.2 5.2 0 0 0 3.2.7 2.7 2.7 0 0 0 1.8-1.3 2.2 2.2 0 0 0 .2-1.3c-.1-.1-.3-.2-.5-.3z"/></svg>Hablar con ${agenteActual().nombre}</a></div>`
+        : `<button class="btn big" onclick="convertir()">Hablar con Linda</button><div class="tb-trial">Linda recibe tu diagnóstico y te ayuda a agendar una demo de Sora Enterprise.</div>`}
+      </div>
+      </div>
+    </aside></div>
+    <div class="foot-note">Precios en MXN sin IVA, por empleado activo al mes. El total nunca baja al sumar empleados. Reloj checador: menor precio si también contratas Expedientes o Recibos. Pricing v${CFG.version}.</div>
+  </div></div>`;
+  flotantes.innerHTML = `<div class="mbar ${mbarOculta ? 'oculta' : ''}" id="mbar"><div><div class="bt">${fmt(importe(c))}<small> MXN /mes</small></div><div class="bs">${NOMBRE[plan]} · ${S.emp.toLocaleString('es-MX')} colaboradores</div></div><button type="button" onclick="verDesglose()">Ver desglose ↓</button></div>${S.captura ? modalCaptura() : ''}`;
+  vigilaDesglose();
+}
+// ---- Móvil: la barra inferior se muestra solo mientras el desglose está más abajo.
+let obsDesglose = null, mbarOculta = false;
+function vigilaDesglose() {
+  if (obsDesglose) obsDesglose.disconnect();
+  const tb = document.querySelector('.totbox'), bar = document.getElementById('mbar');
+  if (!tb || !bar || !('IntersectionObserver' in window)) return;
+  obsDesglose = new IntersectionObserver(([e]) => {
+    mbarOculta = e.isIntersecting || e.boundingClientRect.top <= 0;   // visible o ya lo pasó (footer del sitio)
+    bar.classList.toggle('oculta', mbarOculta);
+  }, { rootMargin: '0px 0px -60px 0px' });
+  obsDesglose.observe(tb);
+}
+function verDesglose() { track('ver_desglose'); document.querySelector('.totbox')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+// Teclado abierto (cualquier campo con foco): se esconde la barra para que no flote sobre el teclado.
+document.addEventListener('focusin', e => { if (e.target.matches && e.target.matches('input,textarea')) document.body.classList.add('kb-on'); });
+document.addEventListener('focusout', () => setTimeout(() => { const a = document.activeElement; if (!a || !a.matches || !a.matches('input,textarea')) document.body.classList.remove('kb-on'); }, 60));
+// ---- Modal en móvil: sigue al área visible real (visualViewport) para que el teclado no lo corte ni lo deje desfasado.
+function vvSync() { const v = window.visualViewport, r = document.documentElement.style; if (!v) return; r.setProperty('--vvh', v.height + 'px'); r.setProperty('--vvt', v.offsetTop + 'px'); }
+function modalOn(on) {
+  document.body.classList.toggle('modal-on', on);
+  const v = window.visualViewport; if (!v) return;
+  if (on) { vvSync(); v.addEventListener('resize', vvSync); v.addEventListener('scroll', vvSync); }
+  else { v.removeEventListener('resize', vvSync); v.removeEventListener('scroll', vvSync); document.documentElement.style.removeProperty('--vvh'); document.documentElement.style.removeProperty('--vvt'); }
+}
+// Al enfocar un campo, centrarlo en lo visible (el teclado ya se abrió) y Enter pasa al siguiente.
+function enfoca(el) { setTimeout(() => { try { el.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch (e) {} }, 280); }
+function sigCampo(ev, sig) { if (ev.key !== 'Enter') return; ev.preventDefault(); if (sig) document.getElementById(sig)?.focus(); else { ev.target.blur(); enviarLead(); } }
+
+// Escapa lo que la persona escribió antes de volver a pintarlo (comillas, <, &).
+const escH = v => String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+// Resumen de lo que está contratando, visible dentro del modal (no se pierde de vista al dejar datos).
+function resumenModal() {
+  if (!esGo()) return '';
+  const plan = planAplicado(), c = cotiza(plan), lin = lineas(plan), P = S.prio, k = cobroHoy();
+  return `<div class="modal-sum" aria-label="Tu inversión">
+    <div class="ms-n" style="margin:0 0 4px">${anual() ? 'Desglose del pago anual (−15%), sin IVA' : 'Desglose mensual, sin IVA'}</div>
+    ${lineasCobro().map(l => `<div class="ms-l"><span>${CARDS[l.k].nombre}</span><b>${l.v ? fmt(l.v) : 'Incluido'}</b></div>`).join('')}
+    <div class="ms-l"><span>${incluidos(plan).join(' · ')}</span><b style="color:var(--green-t);font-weight:500">Incluido</b></div>
+    <div class="ms-l" style="border-top:1px solid var(--line);margin-top:6px;padding-top:8px"><span>Subtotal ${anual() ? 'pago anual (−15%)' : 'mensual'}</span><b>${fmtC(k.sub)}</b></div>
+    <div class="ms-l"><span>IVA (16%)</span><b>${fmtC(k.iva)}</b></div>
+    <div class="ms-t"><span>Total a cobrar hoy</span><span>${fmtC(k.total)} MXN</span></div>
+    <div class="ms-n">Plan ${NOMBRE[plan]} · ${S.emp.toLocaleString('es-MX')} colaboradores${c.piso ? ` · incluye el mínimo del plan (${fmt(CFG.piso[plan])} + IVA)` : ''} · se renueva cada ${anual() ? 'año' : 'mes'}</div>
+    ${P.ok && P.orden.length > 1 ? `<div class="ms-p">Primero empezaremos con <b>${nomMod(P.orden[0])}</b> · <button class="vc-link" onclick="cerrarCaptura();cambiarPrio()">Cambiar</button></div>` : ''}
+  </div>`;
+}
+function modalCaptura() {
+  const go = esGo();
+  return `<div class="ov" onclick="if(event.target===this)cerrarCaptura()"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-t">
+    <button class="modal-x" onclick="cerrarCaptura()" aria-label="Cerrar">✕</button>
+    <h2 id="modal-t">${go ? 'Contratar Sora Go' : 'Habla con Linda'}</h2>
+    <p class="modal-sub">${go ? 'Confirma tus datos. Te llevamos a la página segura de Stripe para pagar con tarjeta; ahí también puedes capturar tu RFC.' : 'Déjanos tus datos para continuar por WhatsApp con Linda. Le compartiremos tu diagnóstico y lo que quieres resolver primero.'}</p>
+    ${resumenModal()}
+    <div class="modal-f">
+      <input type="text" id="lead-n" placeholder="Tu nombre" autocomplete="name" enterkeyhint="next" value="${escH(S.lead.nombre)}" oninput="setLead('nombre',this.value)" onfocus="enfoca(this)" onkeydown="sigCampo(event,'lead-e')">
+      <input type="email" id="lead-e" placeholder="Correo de trabajo *" autocomplete="email" inputmode="email" autocapitalize="off" spellcheck="false" enterkeyhint="next" value="${escH(S.lead.email)}" oninput="setLead('email',this.value)" onfocus="enfoca(this)" onkeydown="sigCampo(event,'lead-c')" class="${S.leadErr ? 'err' : ''}" ${S.leadErr ? 'aria-invalid="true" aria-describedby="lead-err"' : ''}>
+      <input type="text" id="lead-c" placeholder="Empresa" autocomplete="organization" enterkeyhint="go" value="${escH(S.lead.empresa)}" oninput="setLead('empresa',this.value)" onfocus="enfoca(this)" onkeydown="sigCampo(event,null)">
+    </div>
+    ${S.leadErr ? '<div class="modal-err" id="lead-err">Escribe un correo válido para continuar.</div>' : ''}
+    ${S.payErr ? `<div class="modal-err" role="alert">${escH(S.payErr)}</div>` : ''}
+    <button class="btn big" ${S.enviando ? 'disabled' : ''} onclick="enviarLead()">${S.enviando ? (go ? 'Abriendo pago seguro…' : 'Enviando…') : (go ? `<span class="pay-lock">${LOCK}Ir a pagar ${fmtC(cobroHoy().total)}</span>` : 'Hablar con Linda')}</button>
+    ${go ? '<div class="modal-foot">Te llevaremos a <b>checkout.stripe.com</b> para completar el pago.</div>' : ''}
+  </div></div>`;
+}
+
+window.__sora = { camposPrioridad, S, recomendaciones, cotiza, resumenTexto, diagnosticoPayload, planAplicado, selInicial, respaldo, ATTR, refBloque, waLink, cobroHoy, pagar, lineasCobro };
+if (MODO_PRUEBA) document.getElementById('test-band').hidden = false;
+const retomado = restaurarEstado();
+render();
+track(retomado ? 'retomar_tras_cancelar' : 'vista', ATTR.params());
+</script>
+</body>
+</html>
